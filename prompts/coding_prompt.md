@@ -87,6 +87,56 @@ if command -v docker-compose &> /dev/null; then
 fi
 ```
 
+### STEP 4.5: INFRASTRUCTURE VALIDATION (MANDATORY)
+
+**Verify infrastructure is accessible and ready:**
+
+```bash
+echo "Validating infrastructure..."
+
+# Check databases are accessible
+if grep -q "postgres:" docker-compose.yml 2>/dev/null; then
+    # Test PostgreSQL connection
+    docker exec $(docker-compose ps -q postgres 2>/dev/null) psql -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres} -c "SELECT 1" >/dev/null 2>&1 || echo "⚠️ PostgreSQL not accessible"
+fi
+
+if grep -q "redis:" docker-compose.yml 2>/dev/null; then
+    # Test Redis connection
+    docker exec $(docker-compose ps -q redis 2>/dev/null) redis-cli ping 2>&1 | grep -q "PONG" || echo "⚠️ Redis not accessible"
+fi
+
+# Check object storage (MinIO/S3)
+if grep -q "minio:" docker-compose.yml 2>/dev/null; then
+    # Test MinIO accessible
+    curl -sf http://localhost:${MINIO_PORT:-9000}/minio/health/live >/dev/null 2>&1 || echo "⚠️ Object storage not accessible"
+    
+    # Verify storage initialized (directories/buckets exist)
+    container=$(docker-compose ps -q minio 2>/dev/null)
+    if [ -n "$container" ]; then
+        # Check data directory has content
+        count=$(docker exec $container ls /data/ 2>/dev/null | wc -l || echo "0")
+        if [ "$count" -lt 2 ]; then
+            echo "⚠️ Storage buckets may not be initialized"
+            echo "   Create required buckets/directories for your app"
+        fi
+    fi
+fi
+
+# For non-Docker projects, check ports
+if [ ! -f "docker-compose.yml" ]; then
+    # Check if application port is listening
+    if lsof -i :${PORT:-8080} -sTCP:LISTEN >/dev/null 2>&1; then
+        echo "✅ Application accessible on port ${PORT:-8080}"
+    else
+        echo "⚠️ Application not running on port ${PORT:-8080}"
+    fi
+fi
+
+echo "✅ Infrastructure validation complete"
+```
+
+**If critical infrastructure missing: FIX IT before testing features!**
+
 ### STEP 5: VERIFICATION TEST (CRITICAL!)
 
 **MANDATORY BEFORE NEW WORK:**
