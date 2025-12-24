@@ -52,7 +52,42 @@ chmod +x init.sh
 
 Otherwise, start servers manually and document the process.
 
-### STEP 3: VERIFICATION TEST (CRITICAL!)
+### STEP 3: CHECK IF PROJECT IS COMPLETE (STOP CONDITION!)
+
+**CRITICAL: Check completion status FIRST!**
+
+```bash
+total=$(cat feature_list.json | python3 -c "import json, sys; print(len(json.load(sys.stdin)))")
+passing=$(cat feature_list.json | python3 -c "import json, sys; print(len([f for f in json.load(sys.stdin) if f.get('passes')]))")
+
+echo "Progress: $passing/$total features"
+
+if [ "$passing" = "$total" ]; then
+    echo "🎉 ALL FEATURES COMPLETE ($total/$total)!"
+    echo "✅ STOPPING - Do not add features beyond spec!"
+    echo "Update claude-progress.txt and exit."
+    exit 0
+fi
+```
+
+**If all features pass: STOP WORKING!** Do not add enhancements, refactor, or polish.
+
+### STEP 4: SERVICE HEALTH CHECK (IF USING DOCKER)
+
+**Before testing, ensure services are healthy:**
+
+```bash
+if command -v docker-compose &> /dev/null; then
+    unhealthy=$(docker-compose ps 2>/dev/null | grep -c "unhealthy" || echo "0")
+    if [ "$unhealthy" -gt 0 ]; then
+        echo "⚠️ $unhealthy services unhealthy - waiting..."
+        # Wait up to 3 minutes for healthy status
+        # If still unhealthy: exit and fix services!
+    fi
+fi
+```
+
+### STEP 5: VERIFICATION TEST (CRITICAL!)
 
 **MANDATORY BEFORE NEW WORK:**
 
@@ -75,14 +110,14 @@ For example, if this were a chat app, you should perform a test that logs into t
   * Missing hover states
   * Console errors
 
-### STEP 4: CHOOSE ONE FEATURE TO IMPLEMENT
+### STEP 6: CHOOSE ONE FEATURE TO IMPLEMENT
 
 Look at feature_list.json and find the highest-priority feature with "passes": false.
 
 Focus on completing one feature perfectly and completing its testing steps in this session before moving on to other features.
 It's ok if you only complete one feature in this session, as there will be more sessions later that continue to make progress.
 
-### STEP 5: IMPLEMENT THE FEATURE
+### STEP 7: IMPLEMENT THE FEATURE
 
 Implement the chosen feature thoroughly:
 1. Write the code (frontend and/or backend as needed)
@@ -90,7 +125,68 @@ Implement the chosen feature thoroughly:
 3. Fix any issues discovered
 4. Verify the feature works end-to-end
 
-### STEP 6: VERIFY WITH BROWSER AUTOMATION
+### STEP 8: DATABASE SCHEMA VALIDATION (If Feature Uses Database)
+
+**Before testing database features:**
+
+```python
+# Check if required columns exist
+# Example for 'files' table:
+import psycopg2
+conn = psycopg2.connect(os.getenv('DATABASE_URL'))
+cursor = conn.cursor()
+
+cursor.execute("""
+    SELECT column_name 
+    FROM information_schema.columns 
+    WHERE table_name='files' AND column_name='retention_policy'
+""")
+
+if not cursor.fetchone():
+    print("❌ Column 'retention_policy' missing!")
+    print("Create migration to add it BEFORE marking feature passing!")
+    exit(1)
+```
+
+**Only mark database features passing after schema validation!**
+
+### STEP 9: BROWSER INTEGRATION TEST (For Frontend + Backend Features)
+
+**MANDATORY: Test with real browser, not just curl!**
+
+**For features with frontend calling backend:**
+
+1. Open browser DevTools (F12)
+2. Navigate to feature page
+3. Trigger the feature (click button, submit form)
+4. **Check Network tab:**
+   - API request shows **200 OK** (not CORS error!)
+   - Response has expected data
+5. **Check Console tab:**
+   - **Zero red errors**
+   - **No CORS warnings**
+6. **If CORS error:** Add CORS middleware, re-test!
+
+**DO NOT mark passing if curl works but browser fails!**
+
+### STEP 10: END-TO-END TEST WITH PUPPETEER (For UI Features)
+
+**MANDATORY: Verify complete user workflow**
+
+Use Puppeteer MCP tools to test end-to-end:
+```
+1. Navigate to feature
+2. Screenshot before
+3. Perform actions (type, click, etc.)
+4. Wait for success state
+5. Screenshot after
+6. Verify in database
+7. Check console for errors
+```
+
+**Only mark UI features passing after Puppeteer verification!**
+
+### STEP 11: VERIFY WITH BROWSER AUTOMATION
 
 **CRITICAL:** You MUST verify features through the actual UI.
 
@@ -112,11 +208,53 @@ Use browser automation tools:
 - Skip visual verification
 - Mark tests passing without thorough verification
 
-### STEP 7: UPDATE feature_list.json (CAREFULLY!)
+### STEP 12: ZERO TODOs CHECK (MANDATORY)
+
+**Before marking feature as passing:**
+
+```bash
+# Check for TODOs in files modified this session
+modified_files=$(git diff --name-only HEAD)
+todos=$(echo "$modified_files" | xargs grep -n "TODO\|FIXME\|WIP" 2>/dev/null || true)
+
+if [ -n "$todos" ]; then
+    echo "❌ TODOs found in modified files!"
+    echo "$todos"
+    echo ""
+    echo "Complete implementation or leave feature as 'passes': false"
+    echo "DO NOT mark passing with TODOs!"
+    exit 1
+fi
+```
+
+**Exception:** Documentation TODOs OK, implementation TODOs NOT OK!
+
+### STEP 13: SECURITY CHECKLIST (For Auth/Security Features)
+
+**If implementing authentication, authorization, or handling sensitive data:**
+
+Security Checklist:
+- [ ] No credentials in URLs (POST with body, not GET!)
+- [ ] Passwords hashed with bcrypt (cost 12+)
+- [ ] JWT tokens expire (< 24 hours)
+- [ ] Input validation (Pydantic/schema)
+- [ ] SQL injection prevention (no raw SQL!)
+- [ ] XSS prevention (sanitize outputs)
+- [ ] Rate limiting on auth endpoints
+- [ ] CORS configured (not "*" in production)
+
+**Automated check:**
+```bash
+grep -r "password.*GET" . && echo "❌ CREDENTIALS IN URL!"
+```
+
+**Only mark security features passing after 100% checklist!**
+
+### STEP 14: UPDATE feature_list.json (CAREFULLY!)
 
 **YOU CAN ONLY MODIFY ONE FIELD: "passes"**
 
-After thorough verification, change:
+After ALL quality gates pass, change:
 ```json
 "passes": false
 ```
@@ -132,7 +270,15 @@ to:
 - Combine or consolidate tests
 - Reorder tests
 
-**ONLY CHANGE "passes" FIELD AFTER VERIFICATION WITH SCREENSHOTS.**
+**ONLY CHANGE "passes" FIELD AFTER ALL GATES PASS:**
+✅ Stop condition checked  
+✅ Services healthy  
+✅ Database schema validated  
+✅ Browser integration tested  
+✅ E2E test passed  
+✅ Zero TODOs verified  
+✅ Security checklist complete  
+✅ Verification with screenshots done
 
 ### STEP 8: COMMIT YOUR PROGRESS
 
