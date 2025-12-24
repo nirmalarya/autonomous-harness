@@ -280,7 +280,34 @@ to:
 ✅ Security checklist complete  
 ✅ Verification with screenshots done
 
-### STEP 8: COMMIT YOUR PROGRESS
+### STEP 15: FILE ORGANIZATION CHECK (Before Commit!)
+
+**MANDATORY: Ensure clean file organization!**
+
+```bash
+echo "Checking file organization..."
+
+# Count root files (excluding hidden)
+root_files=$(ls -1 2>/dev/null | wc -l)
+
+if [ "$root_files" -gt 20 ]; then
+    echo "⚠️  Root has $root_files files (max: 20) - organizing..."
+    
+    # Auto-organize misplaced files
+    find . -maxdepth 1 -name "test_*.py" -exec mv {} tests/unit/ \; 2>/dev/null
+    find . -maxdepth 1 -name "test_*.ts" -exec mv {} tests/e2e/ \; 2>/dev/null
+    find . -maxdepth 1 -name "SESSION_*.md" -exec mv {} .sessions/ \; 2>/dev/null
+    find . -maxdepth 1 -name "debug_*.py" -exec mv {} scripts/utils/ \; 2>/dev/null
+    find . -maxdepth 1 -name "*_GUIDE.md" -exec mv {} docs/guides/ \; 2>/dev/null
+    
+    root_files=$(ls -1 2>/dev/null | wc -l)
+    echo "✅ Organized! Root now has $root_files files"
+fi
+
+echo "✅ File organization validated"
+```
+
+### STEP 16: COMMIT YOUR PROGRESS
 
 Make a descriptive git commit:
 ```bash
