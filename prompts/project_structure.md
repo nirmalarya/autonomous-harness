@@ -272,4 +272,4 @@ Let me add this to the prompts now:
 
 <function_calls>
 <invoke name="search_replace">
-<parameter name="file_path">/Users/nirmalarya/Workspace/autonomous-harness/prompts/initializer_prompt.md
+<parameter name="file_path">autonomous-harness/prompts/initializer_prompt.md

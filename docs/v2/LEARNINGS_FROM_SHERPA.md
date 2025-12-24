@@ -404,13 +404,13 @@ docs/
 
 ### Step 1: Update SHERPA's Harness Code
 ```bash
-cd /Users/nirmalarya/Workspace/sherpa
+cd sherpa
 
 # Copy updated harness code
-cp /Users/nirmalarya/Workspace/auto-harness/autonomous-harness/agent.py \
+cp auto-harness/autonomous-harness/agent.py \
    sherpa/core/harness/agent_client.py
 
-cp /Users/nirmalarya/Workspace/auto-harness/autonomous-harness/prompts/* \
+cp auto-harness/autonomous-harness/prompts/* \
    sherpa/core/harness/prompts/
 
 # Test
