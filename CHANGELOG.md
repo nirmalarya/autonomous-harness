@@ -95,7 +95,68 @@ Successfully built SHERPA v1.0 - a complete production-ready application!
 
 ---
 
-## [Unreleased] - v2.0 Roadmap
+## [2.0.0-beta] - 2024-12-25
+
+### 🎉 Major Release - Quality Gates & Enhancement Mode
+
+Based on learnings from SHERPA v1.0 and AutoGraph v3.0 builds.
+
+### Added
+
+#### Quality Gates (8 Critical Improvements)
+- **Stop Condition**: Agent exits at 100% completion (prevents scope creep)
+- **Service Health Check**: Waits for all services healthy before testing
+- **Database Schema Validation**: Verifies columns exist before marking passing
+- **Browser Integration Testing**: Tests CORS in real browser, not just curl
+- **E2E Testing**: Mandatory Puppeteer tests for UI features
+- **Zero TODOs Policy**: No incomplete implementations allowed
+- **Security Checklist**: Mandatory for auth/sensitive features
+- **Regression Testing**: Tests random 10% every 5 sessions
+
+#### Multiple Modes
+- **Greenfield Mode**: Build new projects (existing)
+- **Enhancement Mode**: Add features to existing projects (NEW!)
+- **Bugfix Mode**: Fix issues systematically (NEW!)
+
+#### File Organization
+- **Auto-create structure**: Proper directories from Session 1
+- **Auto-organize files**: Moves misplaced files automatically
+- **Enforce clean root**: < 20 files in root directory
+- **Comprehensive .gitignore**: Never commit logs, sessions, secrets
+
+#### Testing Framework
+- `regression_tester.py`: Automated regression testing
+- Test templates for E2E (Puppeteer)
+- Database validation helper
+- Service health checker
+
+#### New Prompts
+- `enhancement_initializer_prompt.md`: Scan existing, append features
+- `enhancement_coding_prompt.md`: Preserve functionality while enhancing
+- `bugfix_mode_prompt.md`: Test-driven bug fixing
+- `quality_gates.md`: Detailed gate specifications
+- `project_structure.md`: Structure requirements
+
+### What This Prevents
+
+Issues found in v1.0 builds (SHERPA, AutoGraph):
+- ❌ Scope creep after 100% → ✅ Stop condition prevents
+- ❌ 150+ files in root → ✅ Auto-organization prevents
+- ❌ Missing database columns → ✅ Schema validation catches
+- ❌ CORS issues → ✅ Browser testing catches
+- ❌ CRUD broken in browser → ✅ E2E testing catches
+- ❌ Old features breaking → ✅ Regression testing catches
+- ❌ Incomplete TODOs → ✅ Zero policy enforces
+- ❌ Security vulnerabilities → ✅ Checklist catches
+
+### Testing
+
+- Tested on: (Will test on AutoGraph v3.1, SHERPA v1.1)
+- Quality improvement: v1.0 apps (B+/A-) → v2.0 apps (A/A+ expected)
+
+---
+
+## [Unreleased] - v2.1+ Roadmap
 
 ### Planned Enhancements
 
