@@ -15,13 +15,13 @@ pwd
 ls -la
 
 # 3. Read the project specification to understand what you're building
-cat app_spec.txt
+cat spec/app_spec.txt || cat app_spec.txt
 
 # 4. Read the feature list to see all work
-cat feature_list.json | head -50
+cat spec/feature_list.json | head -50
 
 # 5. VALIDATE feature_list.json IMMEDIATELY
-cat feature_list.json | python -c "import json, sys; data=json.load(sys.stdin); print(len(data), 'features')"
+cat spec/feature_list.json | python -c "import json, sys; data=json.load(sys.stdin); print(len(data), 'features')"
 # If < 100 features: STOP! feature_list.json is incomplete! Complete it before coding!
 
 # 6. Read progress notes from previous sessions
@@ -57,8 +57,8 @@ Otherwise, start servers manually and document the process.
 **CRITICAL: Check completion status FIRST!**
 
 ```bash
-total=$(cat feature_list.json | python3 -c "import json, sys; print(len(json.load(sys.stdin)))")
-passing=$(cat feature_list.json | python3 -c "import json, sys; print(len([f for f in json.load(sys.stdin) if f.get('passes')]))")
+total=$(cat spec/feature_list.json | python3 -c "import json, sys; print(len(json.load(sys.stdin)))")
+passing=$(cat spec/feature_list.json | python3 -c "import json, sys; print(len([f for f in json.load(sys.stdin) if f.get('passes')]))")
 
 echo "Progress: $passing/$total features"
 
@@ -112,7 +112,7 @@ For example, if this were a chat app, you should perform a test that logs into t
 
 ### STEP 6: CHOOSE ONE FEATURE TO IMPLEMENT
 
-Look at feature_list.json and find the highest-priority feature with "passes": false.
+Look at spec/feature_list.json and find the highest-priority feature with "passes": false.
 
 Focus on completing one feature perfectly and completing its testing steps in this session before moving on to other features.
 It's ok if you only complete one feature in this session, as there will be more sessions later that continue to make progress.
@@ -169,22 +169,41 @@ if not cursor.fetchone():
 
 **DO NOT mark passing if curl works but browser fails!**
 
-### STEP 10: END-TO-END TEST WITH PUPPETEER (For UI Features)
+### STEP 10: END-TO-END TEST (MANDATORY - Generic Approach!)
 
-**MANDATORY: Verify complete user workflow**
+**Test complete user workflow appropriate for project type:**
 
-Use Puppeteer MCP tools to test end-to-end:
+**For Web Apps:** Use Puppeteer to test in browser
+**For APIs:** Use curl/httpie to test endpoints
+**For CLIs:** Execute commands and verify output
+**For Desktop:** Use appropriate automation
+
+**Generic E2E Checklist (adapt to your project):**
+1. Start from clean/logged-out state
+2. Perform complete user workflow (not just one API call!)
+3. Verify immediate feedback (success message, UI update)
+4. **Verify persistence** (reload page/restart app - data still there!)
+5. Verify no errors (console/logs)
+6. Test with real data (not mocks!)
+
+**Example for web app:**
 ```
-1. Navigate to feature
-2. Screenshot before
-3. Perform actions (type, click, etc.)
-4. Wait for success state
-5. Screenshot after
-6. Verify in database
-7. Check console for errors
+1. Navigate to feature page
+2. Authenticate if needed
+3. Perform action (create/update/delete)
+4. Verify success message
+5. Reload page or navigate away and back
+6. Verify data persists!
+7. Check console (zero errors)
 ```
 
-**Only mark UI features passing after Puppeteer verification!**
+**DO NOT mark passing if:**
+- ❌ Only tested API in isolation (not end-to-end!)
+- ❌ Data doesn't persist after reload
+- ❌ Console has errors
+- ❌ Never tested in actual interface
+
+**Only mark passing after COMPLETE USER WORKFLOW tested!**
 
 ### STEP 11: VERIFY WITH BROWSER AUTOMATION
 
@@ -250,7 +269,7 @@ grep -r "password.*GET" . && echo "❌ CREDENTIALS IN URL!"
 
 **Only mark security features passing after 100% checklist!**
 
-### STEP 14: UPDATE feature_list.json (CAREFULLY!)
+### STEP 14: UPDATE spec/feature_list.json (CAREFULLY!)
 
 **YOU CAN ONLY MODIFY ONE FIELD: "passes"**
 
