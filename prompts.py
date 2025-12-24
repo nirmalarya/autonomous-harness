@@ -39,13 +39,12 @@ def get_coding_prompt(mode: str = "greenfield") -> str:
 
 
 def copy_spec_to_project(project_dir: Path, spec_file: str = None, mode: str = "greenfield") -> None:
-    """Copy the spec file into the project directory for the agent to read."""
+    """Copy the spec file and helper tools into the project directory."""
+    # Copy spec file
     if spec_file:
-        # Custom spec file provided
         spec_source = Path(spec_file)
         spec_name = "enhancement_spec.txt" if mode in ["enhancement", "bugfix"] else "app_spec.txt"
     else:
-        # Use default spec from prompts
         spec_source = PROMPTS_DIR / "app_spec.txt"
         spec_name = "app_spec.txt"
     
@@ -54,3 +53,12 @@ def copy_spec_to_project(project_dir: Path, spec_file: str = None, mode: str = "
     if not spec_dest.exists() or mode in ["enhancement", "bugfix"]:
         shutil.copy(spec_source, spec_dest)
         print(f"Copied {spec_source.name} to project directory as {spec_name}")
+    
+    # Copy helper tools to project
+    tools_to_copy = ["regression_tester.py"]
+    for tool in tools_to_copy:
+        tool_source = PROMPTS_DIR / tool
+        tool_dest = project_dir / tool
+        if tool_source.exists() and not tool_dest.exists():
+            shutil.copy(tool_source, tool_dest)
+            print(f"Copied {tool} to project directory")
