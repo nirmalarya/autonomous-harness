@@ -54,10 +54,12 @@ def copy_spec_to_project(project_dir: Path, spec_file: str = None, mode: str = "
         shutil.copy(spec_source, spec_dest)
         print(f"Copied {spec_source.name} to project directory as {spec_name}")
     
-    # Copy helper tools to project
+    # Copy helper tools to project from harness root
+    harness_root = Path(__file__).parent
     tools_to_copy = ["regression_tester.py"]
+    
     for tool in tools_to_copy:
-        tool_source = PROMPTS_DIR / tool
+        tool_source = harness_root / tool
         tool_dest = project_dir / tool
         if tool_source.exists() and not tool_dest.exists():
             shutil.copy(tool_source, tool_dest)
