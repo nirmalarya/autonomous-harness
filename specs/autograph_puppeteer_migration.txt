@@ -45,15 +45,26 @@
       </deliverable>
     </phase>
     
-    <phase name="convert-tests" sessions="6-100">
-      <objective>Convert all 210 Playwright tests to Puppeteer MCP</objective>
+    <phase name="convert-and-improve-tests" sessions="6-100">
+      <objective>Convert Playwright tests to Puppeteer MCP AND improve quality</objective>
+      
+      <critical>NOT just syntax conversion - QUALITY IMPROVEMENT!</critical>
       
       <process>
         For each Playwright test:
         
         1. Read original test (e.g., test_auth_e2e.py)
         
-        2. Convert to Puppeteer MCP:
+        2. ASSESS QUALITY of original test:
+           - Does it test complete workflow? (not just one action)
+           - Does it verify results? (has assertions)
+           - Does it test persistence? (reload/revisit)
+           - Does it test error cases? (not just happy path)
+           - Does it use real data? (not mocked)
+           
+           Rate: HIGH / MEDIUM / LOW quality
+        
+        3. IMPROVE while converting:
            ```python
            # FROM (Playwright):
            async with async_playwright() as p:
@@ -70,18 +81,46 @@
            Use puppeteer_type in #email field with test@example.com
            ```
         
-        3. Write new Puppeteer-based test:
-           - Same test logic
-           - Using Puppeteer MCP tools
-           - Saved in tests/puppeteer/
+        3. Write IMPROVED Puppeteer test:
+           
+           If original was HIGH quality:
+           - Convert syntax (Playwright → Puppeteer)
+           - Keep comprehensive logic
+           
+           If original was MEDIUM quality:
+           - Convert syntax
+           - ADD missing checks:
+             * Add persistence verification (reload page, verify data still there)
+             * Add error case testing (invalid input, etc.)
+             * Add complete workflow (not just one step)
+           
+           If original was LOW quality:
+           - REWRITE from scratch using Puppeteer
+           - Read feature description from feature_list.json
+           - Write comprehensive test:
+             * Complete user workflow (register→login→action→verify)
+             * Test persistence (reload page, data persists)
+             * Test error handling (invalid input)
+             * Use real browser (not mocked!)
+             * Multiple assertions
         
         4. RUN the new test (MANDATORY!)
-           - Execute with harness
-           - Verify passes
+           - Execute with Puppeteer MCP
+           - Verify test passes
+           - If fails: Fix test OR fix code
         
-        5. Mark feature as passing if test passes
+        5. Verify test QUALITY before marking passing:
+           - Tests complete workflow ✅
+           - Tests persistence ✅
+           - Has clear assertions ✅
+           - Uses real browser ✅
+           - Would catch real bugs ✅
         
-        6. Delete old Playwright test (cleanup)
+        6. Only then mark feature as passing
+        
+        7. Save improved test in tests/puppeteer/
+        
+        8. Delete old Playwright test
       </process>
       
       <conversion_mapping>
