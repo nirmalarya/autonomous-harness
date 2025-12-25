@@ -76,10 +76,11 @@ ALLOWED_COMMANDS = {
     "open",     # macOS: open browser
     "xdg-open", # Linux: open browser
     "google-chrome",
+    "Google",   # For "Google Chrome" command
+    "Chrome",   # For "Google Chrome" command  
     "chrome",
     "chromium",
     "firefox",
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",  # Full path
     # Script execution
     "init.sh",  # Init scripts; validated separately
     "bash",      # Run bash scripts
