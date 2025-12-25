@@ -173,6 +173,29 @@ async def run_autonomous_agent(
             print(f"\nReached max iterations ({max_iterations})")
             print("To continue, run the script again without --max-iterations")
             break
+        
+        # Check if project is 100% complete (CRITICAL!)
+        spec_feature_list = spec_dir / "feature_list.json"
+        if spec_feature_list.exists():
+            import json
+            try:
+                with open(spec_feature_list) as f:
+                    features = json.load(f)
+                total = len(features)
+                passing = sum(1 for f in features if f.get('passes', False))
+                
+                if passing >= total and total > 0:
+                    print("\n" + "=" * 70)
+                    print(f"🎉 PROJECT 100% COMPLETE ({passing}/{total} features passing)!")
+                    print("=" * 70)
+                    print("\nAll features are marked as passing.")
+                    print("The autonomous coding work is DONE.")
+                    print("\n✅ STOPPING AUTOMATICALLY - No further work needed!")
+                    print("\nTo add more features, create a new enhancement spec.")
+                    print("=" * 70)
+                    return  # Exit the function, stopping the loop
+            except (json.JSONDecodeError, IOError):
+                pass  # Continue if we can't read the file
 
         # Print session header
         print_session_header(iteration, is_first_run)
