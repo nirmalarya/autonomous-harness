@@ -59,9 +59,17 @@ async def run_agent_session(
                         response_text += block.text
                         print(block.text, end="", flush=True)
                     elif block_type == "ToolUseBlock" and hasattr(block, "name"):
-                        print(f"\n[Tool: {block.name}]", flush=True)
-                        if hasattr(block, "input"):
-                            input_str = str(block.input)
+                        # Use formatter for better readability
+                        tool_name = block.name
+                        tool_input = block.input if hasattr(block, "input") else {}
+                        
+                        try:
+                            formatted = format_tool_output(tool_name, tool_input)
+                            print(formatted, flush=True)
+                        except Exception as e:
+                            # Fallback to simple output if formatter fails
+                            print(f"\n[Tool: {tool_name}]", flush=True)
+                            input_str = str(tool_input)
                             if len(input_str) > 200:
                                 print(f"   Input: {input_str[:200]}...", flush=True)
                             else:
