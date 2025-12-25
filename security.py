@@ -34,6 +34,8 @@ ALLOWED_COMMANDS = {
     "test",   # test command (if test -f file)
     "[",      # Alternative syntax for test (if [ -f file ])
     "echo",   # Output
+    "true",   # Boolean true
+    "false",  # Boolean false
     # Text processing
     "sed",
     "awk",
@@ -69,6 +71,15 @@ ALLOWED_COMMANDS = {
     "sleep",
     "pkill",  # For killing dev servers; validated separately
     "kill",
+    "killall",  # Kill by process name
+    # Browser automation
+    "open",     # macOS: open browser
+    "xdg-open", # Linux: open browser
+    "google-chrome",
+    "chrome",
+    "chromium",
+    "firefox",
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",  # Full path
     # Script execution
     "init.sh",  # Init scripts; validated separately
     "bash",      # Run bash scripts
@@ -214,6 +225,10 @@ def validate_pkill_command(command_string: str) -> tuple[bool, str]:
         "npx",
         "vite",
         "next",
+        "chrome",
+        "chromium",
+        "firefox",
+        "Google Chrome",  # For browser automation
     }
 
     try:
