@@ -12,7 +12,7 @@ import subprocess
 from pathlib import Path
 
 
-def browser_cleanup_hook(tool_name: str, tool_input: dict, tool_result: dict, project_dir: Path) -> dict:
+def browser_cleanup_hook(tool_name: str, tool_input: dict, tool_result: dict) -> dict:
     """
     PostToolUse hook that closes browsers after Puppeteer operations.
 
@@ -23,7 +23,6 @@ def browser_cleanup_hook(tool_name: str, tool_input: dict, tool_result: dict, pr
         tool_name: Name of the tool that was just executed
         tool_input: Input parameters to the tool
         tool_result: Result returned by the tool
-        project_dir: Project directory path
 
     Returns:
         Hook result with cleanup status
