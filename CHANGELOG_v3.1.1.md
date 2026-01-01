@@ -50,6 +50,10 @@ claude-harness was using a generic `puppeteer-mcp-server` package that lacked au
 
 **Part 2: Added Explicit Cleanup Instructions** (prompts/coding_prompt.md, prompts/initializer_prompt.md):
 
+**Note:** Prompt instructions alone were NOT sufficient - agent ignored them.
+
+**Part 3: Programmatic Browser Cleanup Hook** (validators/browser_cleanup_hook.py, client.py):
+
 The official MCP server has cleanup capabilities but they must be **triggered explicitly**. Added clear instructions to prompts:
 
 ```markdown
@@ -67,6 +71,31 @@ The Puppeteer MCP server keeps browsers open by default. You must explicitly clo
 - After each feature's E2E tests complete
 - Before committing changes
 - Before ending the session
+```
+
+**Why Context Managers Aren't Enough:**
+
+Both Anthropic's quickstart and claude-harness use `async with client:` context managers, which should cleanup MCP servers on exit. However, the Puppeteer MCP server doesn't properly close browsers when the SDK context exits.
+
+**The Solution:** PostToolUse hook that automatically kills accumulated Chrome processes after screenshot operations (end of E2E tests).
+
+```python
+# validators/browser_cleanup_hook.py
+def browser_cleanup_hook(tool_name, tool_input, tool_result, project_dir):
+    """Auto-cleanup after Puppeteer screenshot operations"""
+    if "screenshot" in tool_name.lower():
+        # Only cleanup if 5+ Chrome processes (accumulation detected)
+        if chrome_count >= 5:
+            subprocess.run(["pkill", "-9", "-f", "Google Chrome for Testing"])
+```
+
+**Registered in client.py:**
+```python
+"PostToolUse": [
+    HookMatcher(matcher="mcp__puppeteer__*", hooks=[
+        browser_cleanup_hook,  # Auto-cleanup browsers
+    ]),
+]
 ```
 
 ### Impact
@@ -137,6 +166,17 @@ Anthropic likely uses the official MCP server package which includes automatic c
 **prompts/initializer_prompt.md** (lines 145-150)
 - Added browser cleanup note after MCP tools section
 - Same cleanup pattern for consistency
+
+**validators/browser_cleanup_hook.py** (NEW)
+- PostToolUse hook for automatic browser cleanup
+- Triggers after Puppeteer screenshot operations
+- Only cleans up when 5+ Chrome processes detected
+- Kills "Google Chrome for Testing" (Puppeteer), not user's Chrome
+
+**client.py** (lines 19, 131-133)
+- Import browser_cleanup_hook
+- Register hook matcher for `mcp__puppeteer__*` tools
+- Auto-cleanup after every Puppeteer operation
 
 ---
 
