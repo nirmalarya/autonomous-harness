@@ -68,12 +68,13 @@ class MCPServerSetup:
         """
         Setup browser automation MCP.
 
-        Uses Puppeteer (proven to work well with Claude Agent SDK).
+        Uses official Puppeteer MCP server with automatic session cleanup.
+        This prevents browser instances from staying open after tests complete.
         """
         return {
             "puppeteer": {
                 "command": "npx",
-                "args": ["puppeteer-mcp-server"]
+                "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
             }
         }
 
