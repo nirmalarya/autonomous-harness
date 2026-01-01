@@ -6,7 +6,39 @@
 
 ---
 
-## 🐛 Critical Bugfix: Browser Cleanup
+## 🐛 Bugfixes
+
+### Bugfix 1: Browser Cleanup Hook Type Error (HOTFIX)
+
+**Issue:** Hook errors during Puppeteer operations:
+```
+Error in hook callback hook_3: Error: 'dict' object has no attribute 'lower'
+```
+
+**Root Cause:** Claude Code SDK sometimes passes `tool_name` as a dict instead of string, causing the hook to crash when calling `.lower()` method.
+
+**Fix:** Added defensive type checking in `browser_cleanup_hook()`:
+```python
+# Defensive type checking - handle case where tool_name might be a dict
+if isinstance(tool_name, dict):
+    # Extract tool name from dict if present
+    actual_tool_name = tool_name.get('name', '') or tool_name.get('tool_name', '')
+    if not actual_tool_name:
+        return {"status": "skipped", "reason": "Could not extract tool name from dict"}
+    tool_name = actual_tool_name
+
+# Convert to string if not already
+tool_name = str(tool_name)
+```
+
+**Impact:**
+- ✅ Hook no longer crashes on dict tool_name
+- ✅ Clean error messages in logs
+- ✅ Browser cleanup runs reliably
+
+---
+
+### Bugfix 2: Browser Cleanup
 
 ### Issue
 
