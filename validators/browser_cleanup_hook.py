@@ -8,11 +8,12 @@ This hook runs after any Puppeteer MCP tool is used and ensures
 browsers are closed to prevent memory leaks.
 """
 
+import asyncio
 import subprocess
 from pathlib import Path
 
 
-def browser_cleanup_hook(tool_name: str, tool_input: dict, tool_result: dict) -> dict:
+async def browser_cleanup_hook(tool_name: str, tool_input: dict, tool_result: dict) -> dict:
     """
     PostToolUse hook that closes browsers after Puppeteer operations.
 
