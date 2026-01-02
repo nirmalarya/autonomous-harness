@@ -438,6 +438,109 @@ $ python3 test_feature_99_e2e.py
 - [x] E2E test passed (exit code 0, all checks passed)
 - [x] Test output shows successful HTTP requests
 
+### STEP 12.5: IF E2E TEST FAILS - DEBUG AND FIX (MANDATORY!)
+
+**CRITICAL: You CANNOT skip to code verification if E2E test fails!**
+
+If the E2E test fails (timeout, 500 error, connection refused, etc.), you MUST debug and fix the issue:
+
+**Debugging Steps (Execute ALL of these):**
+
+```bash
+echo "❌ E2E TEST FAILED - Starting mandatory debugging..."
+
+# 1. Check if backend is actually running
+echo "Step 1: Check backend process..."
+ps aux | grep uvicorn | grep -v grep
+lsof -i :8100
+
+# 2. Check backend logs for errors
+echo "Step 2: Check backend logs..."
+tail -50 backend/logs/app.log 2>/dev/null || echo "No backend logs found"
+
+# 3. Test backend health endpoint directly
+echo "Step 3: Test backend health..."
+curl -v http://localhost:8100/health || curl -v http://localhost:8100/docs
+
+# 4. Check for zombie processes
+echo "Step 4: Check for zombie backend processes..."
+ps aux | grep python | grep main.py
+
+# 5. Check database connectivity
+echo "Step 5: Check database..."
+docker ps | grep postgres
+```
+
+**Common Issues & Fixes:**
+
+**Issue 1: Backend timeout (most common)**
+```bash
+# Fix: Kill zombie processes and restart
+pkill -9 -f uvicorn
+pkill -9 -f "python.*main.py"
+
+# Restart backend
+cd backend
+python -m uvicorn main:app --reload --port 8100 --host 0.0.0.0 &
+
+# Wait for startup
+sleep 5
+
+# Verify it's running
+curl http://localhost:8100/health
+```
+
+**Issue 2: Database connection errors**
+```bash
+# Check if Postgres is running
+docker ps | grep postgres
+
+# If not running, start it
+docker-compose up -d postgres
+
+# Wait for it to be ready
+sleep 3
+```
+
+**Issue 3: Test user doesn't exist**
+```bash
+# Create test user via API
+curl -X POST http://localhost:8100/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "password123",
+    "full_name": "Test User"
+  }'
+```
+
+**After Fixing - MUST Re-run E2E Test:**
+
+```bash
+# Re-run the E2E test
+python3 test_feature_XXX_e2e.py
+
+# Verify it passes now
+if [ $? -ne 0 ]; then
+    echo "❌ E2E TEST STILL FAILING AFTER FIX!"
+    echo "Continue debugging - DO NOT mark feature as passing!"
+    exit 1
+fi
+
+echo "✅ E2E test now passing after fixes!"
+```
+
+**FORBIDDEN WORKAROUNDS:**
+- ❌ "Backend is slow, but code verification passed, so I'll mark it passing"
+- ❌ "E2E test failed, but the code looks correct, so it's probably fine"
+- ❌ "Too many timeouts, I'll just skip E2E testing for this feature"
+- ❌ "I'll increase the timeout to 60 seconds instead of fixing the issue"
+
+**MANDATORY RULE:**
+**IF E2E TEST FAILS → DEBUG → FIX → RE-RUN E2E → ONLY MARK PASSING IF E2E PASSES**
+
+**You must show proof that E2E test passed after your fixes!**
+
 ### STEP 13: ZERO TODOs CHECK (MANDATORY)
 
 **Before marking feature as passing:**
@@ -508,11 +611,13 @@ to:
 ✅ **E2E test created AND executed AND passed** (MANDATORY)
 ✅ E2E test makes real HTTP requests (not mocked)
 ✅ E2E test output shown as proof
+✅ **If E2E failed: Debugged, fixed, and re-ran until passing** (MANDATORY)
 ✅ Zero TODOs verified (no "TODO" in implementation code)
 ✅ Security checklist complete (if auth/security feature)
 ✅ Verification with screenshots done (if UI feature)
 
-**CRITICAL: Item 5-7 are MANDATORY for ALL features with user-facing functionality!**
+**CRITICAL: Items 5-8 are MANDATORY for ALL features with user-facing functionality!**
+**You CANNOT skip debugging if E2E test fails - must fix and re-run!**
 
 ### STEP 15: FILE ORGANIZATION CHECK (Before Commit!)
 
