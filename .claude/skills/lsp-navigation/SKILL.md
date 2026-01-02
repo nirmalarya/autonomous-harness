@@ -5,7 +5,7 @@ description: Code intelligence with Language Server Protocol. Use when exploring
 
 # LSP Code Navigation
 
-Navigate code with IDE-like intelligence using Claude Code's native LSP support (v2.0.74+).
+Navigate code with IDE-like intelligence using Claude Code's LSP plugins from the official marketplace (v1.0.33+).
 
 ## When to Use
 
@@ -135,24 +135,71 @@ Input: {
 - Precise, type-aware
 - Finds all references (including dynamic)
 
+## Installing LSP Plugins
+
+LSP plugins are available from the official Anthropic marketplace.
+
+**Install via CLI:**
+```bash
+# TypeScript/JavaScript
+claude plugin install typescript-lsp@claude-plugins-official
+
+# Python
+claude plugin install pyright-lsp@claude-plugins-official
+
+# Go
+claude plugin install gopls-lsp@claude-plugins-official
+
+# Rust
+claude plugin install rust-analyzer-lsp@claude-plugins-official
+
+# Java
+claude plugin install jdtls-lsp@claude-plugins-official
+
+# C/C++
+claude plugin install clangd-lsp@claude-plugins-official
+
+# C#
+claude plugin install csharp-lsp@claude-plugins-official
+
+# PHP
+claude plugin install php-lsp@claude-plugins-official
+
+# Swift
+claude plugin install swift-lsp@claude-plugins-official
+
+# Lua
+claude plugin install lua-lsp@claude-plugins-official
+```
+
+**Install via UI:**
+```
+1. Type /plugin in Claude Code
+2. Go to Discover tab
+3. Search for language (e.g., "typescript-lsp")
+4. Select and install
+```
+
+**Requirements:**
+- Claude Code v1.0.33+ (`claude --version`)
+- Language server binary installed (e.g., `typescript-language-server`, `pyright-langserver`)
+
 ## Language Support
 
-LSP works with 11 languages (requires language servers installed):
+LSP works with 10 languages via official plugins:
 
-**Web:**
-- TypeScript/JavaScript (typescript-language-server)
-- HTML/CSS (vscode-html/css-languageserver)
-- PHP (intelephense)
-
-**Systems:**
-- Python (pylsp)
-- Go (gopls)
-- Rust (rust-analyzer)
-- C/C++ (clangd)
-- C# (omnisharp)
-- Java (jdtls)
-- Kotlin (kotlin-language-server)
-- Ruby (solargraph)
+| Language   | Plugin              | Server Required              |
+|------------|---------------------|------------------------------|
+| TypeScript | `typescript-lsp`    | `typescript-language-server` |
+| Python     | `pyright-lsp`       | `pyright-langserver`         |
+| Go         | `gopls-lsp`         | `gopls`                      |
+| Rust       | `rust-analyzer-lsp` | `rust-analyzer`              |
+| Java       | `jdtls-lsp`         | `jdtls`                      |
+| C/C++      | `clangd-lsp`        | `clangd`                     |
+| C#         | `csharp-lsp`        | `csharp-ls`                  |
+| PHP        | `php-lsp`           | `intelephense`               |
+| Swift      | `swift-lsp`         | `sourcekit-lsp`              |
+| Lua        | `lua-lsp`           | `lua-language-server`        |
 
 ## Best Practices
 
@@ -238,14 +285,21 @@ Result: Bug located and fixed
 ## Troubleshooting
 
 **LSP tool not available:**
-- Verify `ENABLE_LSP_TOOL=1` environment variable set
-- Check Claude Code version (requires v2.0.74+)
-- Ensure language server installed for file type
+- Check Claude Code version: `claude --version` (requires v1.0.33+)
+- Verify LSP plugin installed: `/plugin` → Installed tab
+- Install plugin if missing: `claude plugin install <lang>-lsp@claude-plugins-official`
+- Ensure language server binary installed (see table above)
+
+**Plugin installation fails:**
+- Check `/plugin` → Errors tab for details
+- Verify language server binary in PATH
+- Try reinstalling: `/plugin uninstall <name>` then install again
 
 **No results returned:**
 - Language server may not be running
 - File may not be in workspace
 - Symbol may be from external library
+- Check plugin status: `/plugin` → Installed tab
 
 **Slow performance:**
 - Large workspace may take time to index

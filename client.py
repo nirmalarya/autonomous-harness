@@ -15,7 +15,7 @@ from claude_code_sdk.types import HookMatcher
 from security import bash_security_hook
 from setup_mcp import MCPServerSetup
 from skills_manager import SkillsManager
-from lsp_config import LSPConfigGenerator
+from lsp_plugins import LSPPluginManager
 from validators.secrets_hook import secrets_scan_hook
 from validators.e2e_hook import e2e_validation_hook
 from validators.browser_cleanup_hook import browser_cleanup_hook
@@ -76,10 +76,10 @@ def create_client(project_dir: Path, model: str, mode: str = "greenfield") -> Cl
     skills = skills_manager.load_skills_for_mode()
 
     # Setup LSP (Language Server Protocol) for code intelligence
-    # Enable Claude Code's native LSP support (v2.0.74+)
-    os.environ["ENABLE_LSP_TOOL"] = "1"
-    lsp_generator = LSPConfigGenerator(project_dir)
-    lsp_setup = lsp_generator.setup_lsp()
+    # LSP plugins are installed via official marketplace
+    # Claude Code v1.0.33+ required
+    lsp_manager = LSPPluginManager(project_dir)
+    lsp_setup = lsp_manager.setup_lsp()
 
     # Create comprehensive security settings
     # Note: Using relative paths ("./**") restricts access to project directory
@@ -120,13 +120,12 @@ def create_client(project_dir: Path, model: str, mode: str = "greenfield") -> Cl
     print("   - Secrets scanning enabled (blocks git commits with secrets)")
     print("   - E2E validation enabled (requires tests for user-facing features)")
     print(f"   - Skills loaded: {', '.join([s['name'] for s in skills]) if skills else 'none'}")
-    print(f"   - LSP enabled: {', '.join(lsp_setup['languages']) if lsp_setup['languages'] else 'none detected'}")
-    print(f"   - LSP config: {lsp_setup['config_file']}")
+    print(f"   - LSP detected: {', '.join(lsp_setup['languages']) if lsp_setup['languages'] else 'none'}")
+    print(f"   - LSP marketplace: {lsp_setup['marketplace']}")
 
-    # Print LSP installation status
-    if lsp_setup['installation_instructions'] != "✓ All LSP servers installed!":
-        print("\n⚠️  LSP Server Installation Required:")
-        print(lsp_setup['installation_instructions'])
+    # Print LSP plugin installation guide
+    if lsp_setup['languages']:
+        print("\n" + lsp_setup['installation_guide'])
     print()
 
     return ClaudeSDKClient(

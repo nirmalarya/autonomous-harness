@@ -36,6 +36,7 @@ prompts/test_execution_gate.md
 prompts/test_quality_standards.md
 prompts/validation_mode_prompt.md
 validators/__init__.py
+validators/browser_cleanup_hook.py
 validators/e2e_hook.py
 validators/e2e_verifier.py
 validators/secrets_hook.py
