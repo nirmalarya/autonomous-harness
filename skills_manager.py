@@ -52,8 +52,15 @@ class SkillsManager:
         self.global_skills_dir = Path.home() / ".claude" / "skills"
         self.project_skills_dir = project_dir / ".claude" / "skills"
 
-        # Harness built-in skills (bundled with claude-harness)
-        self.harness_skills_dir = Path(__file__).parent / ".claude" / "skills"
+        # Harness built-in skills (bundled with claude-harness in harness_data package)
+        # Try to import harness_data package to get skills location
+        try:
+            import harness_data
+            harness_data_path = Path(harness_data.__file__).parent
+            self.harness_skills_dir = harness_data_path / ".claude" / "skills"
+        except (ImportError, AttributeError):
+            # Fallback for development (running from source)
+            self.harness_skills_dir = Path(__file__).parent / "harness_data" / ".claude" / "skills"
 
     def get_mode_specific_skills(self) -> List[str]:
         """

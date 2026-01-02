@@ -47,7 +47,7 @@ setup(
     ],
     package_data={
         "prompts": ["*.md", "*.txt"],
-        ".claude": ["skills/**/*.md"],
+        "harness_data": [".claude/skills/**/*.md"],
         "": ["VERSION"],
     },
     include_package_data=True,

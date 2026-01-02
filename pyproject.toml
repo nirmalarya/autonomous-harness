@@ -40,7 +40,7 @@ Issues = "https://github.com/nirmalarya/claude-harness/issues"
 claude-harness = "autonomous_agent:main"
 
 [tool.setuptools]
-packages = [".claude", "infra", "validators", "prompts"]
+packages = ["infra", "validators", "prompts", "harness_data"]
 py-modules = [
     "agent",
     "autonomous_agent",
@@ -58,5 +58,5 @@ py-modules = [
 
 [tool.setuptools.package-data]
 "prompts" = ["*.md", "*.txt"]
-".claude" = ["skills/**/*.md"]
+"harness_data" = [".claude/skills/**/*.md"]
 "*" = ["VERSION"]
