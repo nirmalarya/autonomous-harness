@@ -159,7 +159,7 @@ async def run_autonomous_agent(
         max_retries: Max retry attempts per feature (default: 3)
     """
     print("\n" + "=" * 70)
-    print("  AUTONOMOUS CODING AGENT v3.2.0")
+    print("  AUTONOMOUS CODING AGENT v3.2.2")
     print("=" * 70)
     print(f"\nProject directory: {project_dir}")
     print(f"Model: {model}")
