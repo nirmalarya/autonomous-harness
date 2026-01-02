@@ -83,6 +83,12 @@ class SkillsManager:
                 "harness-patterns",       # Workflow patterns
                 "lsp-navigation",         # Code navigation with LSP
             ],
+            "bugfix": [
+                "code-quality",           # Maintain code quality
+                "project-patterns",       # Follow existing patterns
+                "harness-patterns",       # Workflow patterns
+                "lsp-navigation",         # Code navigation with LSP
+            ],
             "backlog": [
                 "code-quality",           # Production standards
                 "project-patterns",       # Codebase conventions
