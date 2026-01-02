@@ -46,12 +46,14 @@ py-modules = [
     "client",
     "error_handler",
     "loop_detector",
+    "lsp_plugins",
     "output_formatter",
     "progress",
     "prompts",
     "retry_manager",
     "security",
     "setup_mcp",
+    "skills_manager",
 ]
 
 [tool.setuptools.package-data]
