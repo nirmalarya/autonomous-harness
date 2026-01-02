@@ -121,9 +121,12 @@ def main() -> None:
 
     # Handle --version flag (no OAuth token required)
     if args.version:
-        version_file = Path(__file__).parent / "VERSION"
-        version = version_file.read_text().strip()
-        print(f"claude-harness v{version}")
+        try:
+            from importlib.metadata import version
+            pkg_version = version("claude-harness")
+        except Exception:
+            pkg_version = "3.2.0"  # Fallback version
+        print(f"claude-harness v{pkg_version}")
         return
 
     # Check for OAuth token (only when actually running)
