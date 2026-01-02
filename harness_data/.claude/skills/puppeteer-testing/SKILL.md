@@ -48,6 +48,8 @@ Input: {
 ```
 Use `evaluate` (not fill/click) for reliability.
 
+**IMPORTANT:** Don't use `await` in expression - it's not async. For delays, use bash `sleep` commands between tool calls instead.
+
 **4. Wait for Response**
 ```bash
 sleep 3  # Adjust: forms 2-3s, API calls 3-5s
@@ -92,22 +94,48 @@ return {authenticated: true};
 
 **Form Validation:**
 ```javascript
+// Step 1: Submit invalid form
 document.querySelector('input[name="email"]').value = "invalid";
 document.querySelector('form').submit();
-await new Promise(resolve => setTimeout(resolve, 2000));
+return {submitted: true};
+
+// Step 2 (after bash sleep 2): Check for error
 const error = document.querySelector('.error-message');
 return {hasError: error !== null, errorText: error?.textContent};
 ```
 
 **API Response Verification:**
 ```javascript
-await new Promise(resolve => setTimeout(resolve, 3000));
+// After navigation and bash sleep 3
 const data = document.querySelector('.data-container')?.textContent;
 return {dataLoaded: data !== null, content: data};
 ```
 
+## Selector Syntax
+
+**Standard CSS selectors only** (Puppeteer uses browser's querySelector):
+```javascript
+✅ document.querySelector('button[type="submit"]')  // Attribute selector
+✅ document.querySelector('.login-button')          // Class selector
+✅ document.querySelector('#submit-btn')            // ID selector
+✅ document.querySelector('button.primary')         // Type + class
+
+❌ button:has-text("Login")  // Playwright syntax - NOT supported
+❌ text=Login                // Playwright syntax - NOT supported
+```
+
+**Finding by text content:**
+```javascript
+// Use Array.from + find
+const button = Array.from(document.querySelectorAll('button'))
+  .find(el => el.textContent.includes('Login'));
+if (button) button.click();
+```
+
 ## Best Practices
 
+- **Use `evaluate` for all interactions** - More reliable than click/fill tools
+- **Standard CSS selectors only** - No Playwright syntax (:has-text, text=)
 - **Wait after navigation** - Always sleep 2-3 seconds
 - **Check elements exist** - Use `if (element)` before interacting
 - **3-5 screenshots per feature** - Initial, interaction, final states

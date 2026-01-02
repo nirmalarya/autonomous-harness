@@ -259,6 +259,8 @@ def validate_pkill_command(command_string: str) -> tuple[bool, str]:
         "chromium",
         "firefox",
         "Google Chrome",  # For browser automation
+        "curl",           # For killing hanging HTTP requests during testing
+        "wget",           # For killing hanging downloads
     }
 
     try:
