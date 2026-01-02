@@ -229,37 +229,37 @@ Content explaining patterns, best practices, examples...
 
 ## 🔍 Phase 2: LSP Integration
 
-**Native LSP Support** using Claude Code v2.0.74+ (no MCP server needed)
+**Official Marketplace Plugins** using Claude Code v1.0.33+ plugin system
 
-### LSP Config Generator (lsp_config.py - 250 lines)
+### LSP Plugin Manager (lsp_plugins.py - 200 lines)
 
 **Auto-Detection:**
 - Scans project for language markers (package.json, requirements.txt, go.mod, etc.)
-- Supports 11 languages: TypeScript, Python, Go, Rust, Java, C/C++, C#, PHP, Kotlin, Ruby, HTML/CSS
-- Generates `.claude/plugins/lsp/plugin.json` configurations
+- Supports 10 languages from official marketplace
+- Generates installation commands for detected languages
 
-**Configuration Example:**
-```json
-{
-  "lspServers": {
-    "typescript": {
-      "command": "typescript-language-server",
-      "args": ["--stdio"],
-      "extensionToLanguage": {
-        ".ts": "typescript",
-        ".tsx": "typescriptreact",
-        ".js": "javascript",
-        ".jsx": "javascriptreact"
-      }
-    }
-  }
-}
+**Official Marketplace Plugins:**
+```bash
+# TypeScript/JavaScript
+claude plugin install typescript-lsp@claude-plugins-official
+
+# Python
+claude plugin install pyright-lsp@claude-plugins-official
+
+# Go
+claude plugin install gopls-lsp@claude-plugins-official
+
+# Rust
+claude plugin install rust-analyzer-lsp@claude-plugins-official
+
+# And 6 more: Java, C/C++, C#, PHP, Swift, Lua
 ```
 
 **Features:**
-- Checks if LSP servers installed
-- Provides installation instructions
-- Auto-setup during client creation
+- Uses official Anthropic marketplace (claude-plugins-official)
+- Checks if language server binaries installed
+- Provides comprehensive installation guide
+- No manual configuration needed
 
 ### lsp-navigation Skill (391 lines)
 
@@ -284,28 +284,34 @@ Content explaining patterns, best practices, examples...
 
 **client.py Updates:**
 ```python
-# Enable native LSP
-os.environ["ENABLE_LSP_TOOL"] = "1"
+# Detect languages and provide installation commands
+lsp_manager = LSPPluginManager(project_dir)
+lsp_setup = lsp_manager.setup_lsp()
 
-# Auto-generate LSP configs
-lsp_generator = LSPConfigGenerator(project_dir)
-lsp_setup = lsp_generator.setup_lsp()
-
-# Reports:
-# - LSP enabled: typescript, python
-# - LSP config: /project/.claude/plugins/lsp/plugin.json
-# - Installation status for each language
+# Displays comprehensive installation guide:
+# ============================================================
+# LSP Plugin Installation Guide
+# ============================================================
+#
+# ✅ Ready to Install (server already installed):
+#   TypeScript, JavaScript (typescript):
+#     claude plugin install typescript-lsp@claude-plugins-official
+#
+# ⚠️  Install Language Server First:
+#   Python (python):
+#     1. Install server: npm install -g pyright
+#     2. Install plugin: claude plugin install pyright-lsp@claude-plugins-official
 ```
 
 ### Test Results
 
-**test_lsp_integration.py:**
+**test_lsp_plugins.py:**
 ```
 ✅ Language detection (TypeScript, Python, Go)
-✅ Config generation (plugin.json format)
-✅ File creation (.claude/plugins/lsp/)
-✅ Installation checking
+✅ Plugin install commands generation
+✅ Installation guide formatting
 ✅ Full setup workflow
+✅ Official plugins catalog (10 plugins)
 ```
 
 **Skill Counts Updated:**
@@ -353,12 +359,12 @@ v3.2.0 delivers complete autonomous coding infrastructure:
 ✅ Mode-specific loading
 ✅ Anthropic's official structure
 
-**Phase 2: LSP Integration (250 lines + skill)**
-✅ Native LSP support (Claude Code v2.0.74+)
-✅ Auto-generates configs for 11 languages
+**Phase 2: LSP Integration (200 lines + skill)**
+✅ Official marketplace plugins (Claude Code v1.0.33+)
+✅ Supports 10 languages from claude-plugins-official
 ✅ 90x faster navigation (50ms vs 45s)
 ✅ IDE-like code intelligence
-✅ Installation checking and guidance
+✅ Simple installation: claude plugin install <lang>-lsp@claude-plugins-official
 
 **Complete Autonomous Coding Stack:**
 - **Knowledge**: 5 skills teach best practices
@@ -369,8 +375,9 @@ v3.2.0 delivers complete autonomous coding infrastructure:
 
 **Total Impact:**
 - 5 production skills (1,433 lines)
-- LSP integration (250 lines)
+- LSP plugin manager (200 lines)
 - 2 comprehensive test suites
+- 10 official LSP plugins from Anthropic marketplace
 - 18 skills discovered (5 harness + 13 global)
 - All modes enhanced (greenfield, enhancement, backlog)
 
