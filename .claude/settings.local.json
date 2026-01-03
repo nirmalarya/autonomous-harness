@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(git tag:*)",
+      "Bash(git push:*)",
+      "Bash(cat:*)",
+      "Bash(python -m build:*)",
+      "Bash(pip show:*)",
+      "Bash(python3 -m build:*)",
+      "Bash(ls:*)",
+      "Bash(python3 setup.py:*)",
+      "Bash(python3:*)",
+      "Bash(mkdir:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}
