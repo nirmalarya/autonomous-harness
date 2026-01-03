@@ -1,231 +1,110 @@
-Project Specification: SHERPA V1 - Autonomous Coding Orchestrator
-===================================================================
+# Claude.ai Clone - Complete App Specification
 
-## Overview
-
-SHERPA is an orchestration platform that enhances autonomous coding agents with organizational knowledge. It operates in two modes:
-1. **Generate Mode**: Create instruction files for interactive agents (Cursor, Claude, Copilot)
-2. **Run Mode**: Execute autonomous coding harness with knowledge injection
+## Project Overview
+This specification describes building a fully functional clone of claude.ai, Anthropic's conversational AI interface, with features including chat, artifact rendering, project organization, and multiple model selection.
 
 ## Technology Stack
 
-### Backend (Python - matching autonomous-coding pattern)
-- Framework: FastAPI (async/await)
-- Database: SQLite with aiosqlite
-- Knowledge: AWS S3 + Bedrock Knowledge Base (vector search)
-- Queue: asyncio for concurrent operations
-- CLI: Click + Rich (beautiful terminal output)
+**Frontend:**
+- React with Vite
+- Tailwind CSS styling
+- React Router for navigation
+- React Markdown for rendering
+- Syntax highlighting for code blocks
+- Port: 3000 (default)
 
-### Frontend (React + Vite Dashboard - MANDATORY, NO SHORTCUTS!)
-
-**CRITICAL: Must be actual React application, NOT HTML test files!**
-
-**Required Setup:**
-- **Framework:** React 18.3.1 with Vite 5.0.0 (NOT plain HTML!)
-- **Build Tool:** Vite dev server (npm run dev) on port 3000
-- **Styling:** Tailwind CSS 3.4.0
-- **State:** React Context API + hooks
-- **Routing:** React Router 6.20.0 (client-side routing)
-- **Real-time:** EventSource (SSE) for live updates
-- **Charts:** Recharts 2.10.0 for progress visualization
-- **HTTP:** Axios 1.7.0 for API calls
-- **Icons:** Lucide React for UI icons
-
-**Package.json MUST include:**
-```json
-{
-  "name": "sherpa-frontend",
-  "scripts": {
-    "dev": "vite --port 3000",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.20.0",
-    "axios": "^1.7.0",
-    "recharts": "^2.10.0",
-    "lucide-react": "^0.300.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.2.0",
-    "vite": "^5.0.0",
-    "tailwindcss": "^3.4.0",
-    "autoprefixer": "^10.4.0",
-    "postcss": "^8.4.0"
-  }
-}
-```
-
-**File Structure MUST be:**
-```
-sherpa/frontend/
-├── index.html (Vite entry point with <div id="root">)
-├── package.json (above dependencies)
-├── vite.config.js (React plugin configured)
-├── tailwind.config.js
-├── postcss.config.js
-└── src/
-    ├── main.jsx (ReactDOM.createRoot, renders <App />)
-    ├── App.jsx (BrowserRouter with routes)
-    ├── pages/
-    │   ├── HomePage.jsx (dashboard with active sessions)
-    │   ├── SessionsPage.jsx (list all sessions)
-    │   ├── SessionDetailPage.jsx (monitor specific session with SSE)
-    │   ├── KnowledgePage.jsx (browse snippets, query Bedrock)
-    │   └── SourcesPage.jsx (configure Azure DevOps)
-    ├── components/
-    │   ├── SessionMonitor.jsx (SSE connection, live progress)
-    │   ├── ProgressChart.jsx (Recharts visualization)
-    │   ├── SnippetBrowser.jsx (search and browse snippets)
-    │   └── AzureDevOpsConnector.jsx (connect and configure)
-    ├── lib/
-    │   └── api.js (Axios instance, base URL http://localhost:8000)
-    └── styles/
-        └── index.css (Tailwind @tailwind directives)
-```
-
-**TESTING REQUIREMENT:**
-- Frontend MUST run with `cd sherpa/frontend && npm install && npm run dev`
-- MUST be accessible at http://localhost:3000
-- MUST use Playwright for E2E testing (NOT manual HTML files!)
-- NO shortcuts: Real React components with proper hooks, routing, API calls
-- Backend API on port 8000, frontend on port 3000
-- Frontend calls backend via http://localhost:8000/api/*
-
-### Integrations
-- Azure DevOps: azure-devops Python SDK (Work Items API)
-- AWS Bedrock: boto3 for Knowledge Base queries
-- Git: GitPython for commit tracking
-- File watching: watchdog for repo scanning
+**Backend:**
+- Node.js with Express
+- SQLite using better-sqlite3
+- Claude API integration
+- Server-Sent Events for streaming
 
 ## Core Features
 
-<knowledge_layer>
-  - Bedrock KB client connects to AWS
-  - Query for snippets (semantic search)
-  - Cache results locally
-  - Built-in snippets (7 included: security/auth, python/error-handling, python/async, react/hooks, testing/unit, api/rest, git/commits)
-  - Org snippets from S3 + Bedrock
-  - Project snippets from ./sherpa/snippets/
-  - Local snippets from ./sherpa/snippets.local/
-  - Hierarchy resolution (local > project > org > built-in)
-</knowledge_layer>
+**Chat Interface:**
+- Streaming responses with typing indicators
+- Markdown rendering with proper formatting
+- Code blocks with syntax highlighting and copy buttons
+- LaTeX/math equation rendering
+- Image upload and display
+- Multi-turn conversations
+- Message editing and regeneration
+- Character count and token estimation
 
-<cli_commands>
-  - sherpa init: Setup Bedrock KB, config
-  - sherpa generate: Create instruction files (.cursor/rules/, CLAUDE.md, copilot-instructions.md)
-  - sherpa run --spec file.txt: Execute autonomous harness
-  - sherpa run --source azure-devops: Run with work items
-  - sherpa query "text": Search Bedrock KB
-  - sherpa snippets list: List all snippets
-  - sherpa status: Show active sessions
-  - sherpa logs session-id: View logs
-  - sherpa serve: Start web dashboard (backend + frontend)
-</cli_commands>
+**Artifacts System:**
+- Artifact detection and rendering in side panel
+- Code viewer with syntax highlighting
+- HTML/SVG live preview
+- React component preview
+- Mermaid diagram support
+- Full-screen viewing and download options
+- Versioning and history tracking
 
-<azure_devops_integration>
-  - Connect: PAT authentication
-  - Pull work items: By project, area path, query
-  - Convert to specs: Work item → app_spec.txt format
-  - Update progress: Mark Active, Resolved, add comments
-  - Link commits: Attach git commits to work items
-  - Bidirectional sync: Changes in either system sync
-</azure_devops_integration>
+**Conversation Management:**
+- Create, rename, and delete conversations
+- Search by title/content
+- Pin and archive features
+- Folder-based organization
+- Export options (JSON, Markdown, PDF)
+- Timestamps and unread indicators
 
-<autonomous_harness>
-  - Based on autonomous-coding pattern
-  - Two-agent: Initializer + coding agents
-  - Fresh context per session
-  - Auto-continue (3s delay)
-  - Knowledge injection: Enhanced prompts with snippets
-  - Progress tracking: feature_list.json
-  - Git integration
-</autonomous_harness>
+**Model Selection:**
+Available models:
+- Claude Sonnet 4.5 (default)
+- Claude Haiku 4.5
+- Claude Opus 4.1
 
-<frontend_dashboard>
-  **HomePage:**
-  - Active sessions list (cards with progress bars)
-  - Quick actions: New session, Generate files
-  - Recent activity feed
-  
-  **SessionsPage:**
-  - Table: All sessions (status, started, features completed)
-  - Filters: Status (active, complete, error)
-  - Search sessions
-  
-  **SessionDetailPage:**
-  - Real-time progress (SSE connection to /api/sessions/:id/progress)
-  - Feature list with checkboxes (passes: true shows checked)
-  - Live logs streaming
-  - Git commits list
-  - Stop/pause/resume controls
-  
-  **KnowledgePage:**
-  - Search snippets (query input)
-  - Browse by category (security, python, testing, etc.)
-  - Preview snippet content
-  - Add to project snippets button
-  
-  **SourcesPage:**
-  - Azure DevOps connector form (org, project, PAT)
-  - Test connection button
-  - Sync status
-  - File source configuration
-</frontend_dashboard>
+Includes capabilities display, context window info, and pricing details.
+
+**Advanced Settings:**
+- Temperature control slider
+- Max tokens adjustment
+- Top-p (nucleus sampling) control
+- System prompt override
+- Thinking/reasoning mode toggle
+- Multi-modal input support
+
+**Projects:**
+- Group related conversations
+- Project knowledge base (upload documents)
+- Project-specific custom instructions
+- Team sharing (mock feature)
+- Templates and analytics
+
+**Additional Features:**
+- Theme selection (Light, Dark, Auto)
+- Custom instructions (global/project/conversation)
+- Usage tracking and token counting
+- Onboarding flow with tips
+- Full keyboard navigation and accessibility
+- Mobile-responsive design
+- PWA support
+
+## Database Schema
+
+Primary tables include:
+- users, projects, conversations, messages
+- artifacts, shared_conversations
+- prompt_library, conversation_folders
+- usage_tracking, api_keys
+
+## Key UI Components
+
+- Three-column layout (sidebar, chat, artifacts panel)
+- Collapsible sidebar with conversation groups
+- Message bubbles with markdown support
+- Input area with formatting toolbar
+- Settings modal with tabs
+- Command palette support
+
+## Design System
+
+- Primary color: Orange/amber (#CC785C)
+- Sans-serif typography (Inter, SF Pro, Roboto)
+- Smooth 150-300ms transitions
+- Rounded borders with focus ring for inputs
+- Dark mode fully supported
 
 ## Success Criteria
 
-- ✅ React + Vite frontend running on port 3000
-- ✅ Backend API on port 8000
-- ✅ Dashboard shows active sessions with real-time updates
-- ✅ Can generate instruction files (.cursor/rules/, CLAUDE.md)
-- ✅ Can run autonomous harness
-- ✅ Azure DevOps integration works
-- ✅ Bedrock KB queries return relevant snippets
-- ✅ NO HTML test files as frontend replacement!
-
-## Port Configuration
-
-- **Backend API:** 8000 (FastAPI on http://localhost:8000)
-- **Frontend:** 3001 (Vite dev server on http://localhost:3001 - NOT 3000!)
-
-**IMPORTANT: Port 3001 for SHERPA to avoid conflict with AutoGraph v3 (port 3000)**
-
-**Vite config MUST specify port:**
-```javascript
-// vite.config.js
-export default {
-  server: {
-    port: 3001,  // NOT 3000!
-    host: '0.0.0.0'
-  }
-}
-```
-
-**Package.json dev script:**
-```json
-{
-  "scripts": {
-    "dev": "vite --port 3001 --host"
-  }
-}
-```
-
-**Start command:**
-```bash
-# Backend
-python -m uvicorn sherpa.api.main:app --reload --port 8000
-
-# Frontend (in separate terminal)
-cd sherpa/frontend
-npm run dev
-# Opens on http://localhost:3001 (NOT 3000!)
-```
-
-**API calls from frontend:**
-```javascript
-// Frontend connects to backend on port 8000
-const API_URL = 'http://localhost:8000';
-```
+Functionality, UX, technical quality, and design polish must all meet professional standards matching claude.ai's appearance and performance.

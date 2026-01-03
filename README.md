@@ -270,6 +270,12 @@ The agent tried to run a command not in the allowlist. This is the security syst
 **"OAuth token not set"**
 Run `claude setup-token` to generate your token, then ensure `CLAUDE_CODE_OAUTH_TOKEN` is exported in your shell environment.
 
+## Attribution
+
+This project is built upon concepts from Anthropic's autonomous coding research:
+- **Quickstart Template:** [claude-quickstarts/autonomous-coding](https://github.com/anthropics/claude-quickstarts/tree/main/autonomous-coding)
+- **Engineering Blog:** [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+
 ## License
 
-Internal Anthropic use.
+MIT License - see [LICENSE](LICENSE) file for details.
