@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "claude-harness"
-version = "3.2.5"
+version = "3.3.0"
 description = "Production-ready autonomous coding harness using Claude Code SDK"
 readme = "README.md"
 requires-python = ">=3.10"
