@@ -33,9 +33,10 @@ class MCPServerSetup:
         if mode in ["greenfield", "enhancement"]:
             servers.update(self._setup_browser_mcp())
 
-        # 3. Azure DevOps (backlog mode)
+        # 3. Azure DevOps & Linear (backlog mode)
         if mode == "backlog":
             servers.update(self._setup_azure_devops_mcp())
+            servers.update(self._setup_linear_mcp())
 
         return servers
 
@@ -107,6 +108,42 @@ class MCPServerSetup:
             }
         }
 
+    def _setup_linear_mcp(self) -> dict:
+        """
+        Setup Linear MCP for backlog mode using HTTP transport.
+
+        Linear uses HTTP transport (not NPX) to connect to their official
+        MCP server at https://mcp.linear.app/mcp.
+
+        Requires environment variable:
+        - LINEAR_API_KEY: Linear API key (get from https://linear.app/settings/api)
+
+        Returns:
+            Dict with Linear MCP server configuration using HTTP transport,
+            or empty dict if LINEAR_API_KEY not configured (graceful degradation)
+        """
+        linear_api_key = os.getenv("LINEAR_API_KEY")
+
+        if not linear_api_key:
+            print("⚠️  Warning: LINEAR_API_KEY not set (Linear MCP disabled)")
+            return {}
+
+        # Validate API key format (Linear keys start with 'lin_api_')
+        if not linear_api_key.startswith("lin_api_"):
+            print("⚠️  Warning: LINEAR_API_KEY format invalid (should start with 'lin_api_')")
+            print("   Get your API key from: https://linear.app/settings/api")
+            return {}
+
+        return {
+            "linear": {
+                "type": "http",  # HTTP transport (not NPX)
+                "url": "https://mcp.linear.app/mcp",
+                "headers": {
+                    "Authorization": f"Bearer {linear_api_key}"
+                }
+            }
+        }
+
     def get_documentation_server_name(self) -> str:
         """Get the name of the configured documentation MCP server."""
         return "ref" if os.getenv("REF_TOOLS_API_KEY") else "context7"
@@ -150,4 +187,41 @@ class MCPServerSetup:
             "mcp__azure_devops__create_work_item",
             "mcp__azure_devops__get_work_item_comments",
             "mcp__azure_devops__add_work_item_comment",
+        ]
+
+    def get_linear_tools(self) -> list[str]:
+        """
+        Get list of Linear tool names.
+
+        Linear MCP provides 20 tools across 5 categories:
+        - Team & Project Management
+        - Issue Management
+        - Comments
+        - Workflow (statuses, labels)
+        - Users
+        """
+        return [
+            # Team & Project Management
+            "mcp__linear__list_teams",
+            "mcp__linear__get_team",
+            "mcp__linear__list_projects",
+            "mcp__linear__get_project",
+            "mcp__linear__create_project",
+            "mcp__linear__update_project",
+            # Issue Management
+            "mcp__linear__list_issues",
+            "mcp__linear__get_issue",
+            "mcp__linear__create_issue",
+            "mcp__linear__update_issue",
+            "mcp__linear__list_my_issues",
+            # Comments
+            "mcp__linear__list_comments",
+            "mcp__linear__create_comment",
+            # Workflow
+            "mcp__linear__list_issue_statuses",
+            "mcp__linear__get_issue_status",
+            "mcp__linear__list_issue_labels",
+            # Users
+            "mcp__linear__list_users",
+            "mcp__linear__get_user",
         ]

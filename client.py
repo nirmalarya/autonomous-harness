@@ -70,6 +70,7 @@ def create_client(project_dir: Path, model: str, mode: str = "greenfield") -> Cl
     all_mcp_tools.extend(mcp_setup.get_documentation_tools())
     if mode == "backlog":
         all_mcp_tools.extend(mcp_setup.get_azure_devops_tools())
+        all_mcp_tools.extend(mcp_setup.get_linear_tools())
 
     # Load mode-specific skills
     skills_manager = SkillsManager(project_dir, mode)

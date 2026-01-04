@@ -72,6 +72,17 @@ def inject_mcp_tools(prompt: str, mode: str) -> str:
 - azure_devops_add_work_item_comment(id: int, comment: str) - Add comment to PBI"""
         prompt = prompt.replace("{{AZURE_DEVOPS_MCP_TOOLS}}", ado_tools)
 
+        # Linear tools (backlog mode only)
+        linear_tools = """- linear_list_teams() - List all teams in workspace
+- linear_list_projects(team_id: str) - List projects for a team
+- linear_list_issues(project_id: str, status: str) - List issues in project (filter by status: Todo, In Progress, Done)
+- linear_get_issue(issue_id: str) - Get detailed issue information
+- linear_create_issue(project_id: str, title: str, description: str) - Create new issue
+- linear_update_issue(issue_id: str, state_id: str) - Update issue status (use linear_list_issue_statuses to get state IDs)
+- linear_create_comment(issue_id: str, body: str) - Add comment to issue for documentation
+- linear_list_issue_statuses(team_id: str) - List available workflow states for team"""
+        prompt = prompt.replace("{{LINEAR_MCP_TOOLS}}", linear_tools)
+
     return prompt
 
 

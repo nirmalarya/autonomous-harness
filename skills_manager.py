@@ -94,6 +94,7 @@ class SkillsManager:
                 "project-patterns",       # Codebase conventions
                 "harness-patterns",       # Workflow patterns
                 "lsp-navigation",         # Code navigation with LSP
+                "linear-workflow",        # Linear issue tracking and workflow
             ]
         }
 

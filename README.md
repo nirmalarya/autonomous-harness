@@ -88,9 +88,79 @@ claude-harness --project-dir ./my_project --max-iterations 3
 
 # Enhancement mode (existing projects)
 claude-harness --mode enhancement --project-dir ./existing-app --spec ./features.txt
+
+# Backlog mode with Linear (NEW in v3.3.0)
+export LINEAR_API_KEY='lin_api_...'
+claude-harness --mode backlog --project-dir ./my_project
 ```
 
 📖 **[Read the full User Guide →](USER_GUIDE.md)**
+
+## Backlog Mode Integrations (NEW in v3.3.0)
+
+claude-harness now supports automated issue tracking with Linear or Azure DevOps in backlog mode. The agent fetches issues, implements features, and updates status automatically.
+
+### Linear Integration
+
+**Setup:**
+```bash
+# 1. Get API key from https://linear.app/settings/api
+export LINEAR_API_KEY='lin_api_...'
+
+# 2. Create project marker file in your project
+cat > .linear_project.json <<EOF
+{
+  "team_id": "your_team_id",
+  "project_id": "your_project_id",
+  "project_name": "My Project"
+}
+EOF
+
+# 3. Run in backlog mode
+claude-harness --mode backlog --project-dir ./my_project
+```
+
+**Workflow:**
+1. Agent fetches issues from Linear project
+2. Picks next "Todo" issue
+3. Updates to "In Progress"
+4. Implements feature with E2E tests
+5. Updates to "Done"
+6. Adds implementation comment to issue
+7. Tracks progress via META issue
+
+**Features:**
+- 20 Linear tools for issue management
+- Auto-syncs status (Todo → In Progress → Done)
+- Implementation comments with file changes and test results
+- META issue tracking for session progress
+- State persistence in `.cursor/linear-backlog-state.json`
+
+**Finding Team/Project IDs:**
+```bash
+# Method 1: From Linear URL
+# https://linear.app/workspace/team/ENG/project/my-project
+#                                  ^^^         ^^^^^^^^^^
+#                                team_key    project_key
+
+# Method 2: Use Linear tools
+# Run: linear_list_teams() to get team_id
+# Run: linear_list_projects(team_id) to get project_id
+```
+
+### Azure DevOps Integration
+
+**Setup:**
+```bash
+# Set environment variables
+export ADO_ORG='your-organization'
+export ADO_PROJECT='your-project'
+
+# Run in backlog mode
+claude-harness --mode backlog --project-dir ./my_project
+```
+
+**Note:** Both integrations can be configured simultaneously. The agent will use whichever is available based on environment variables.
 
 ## What's New in v3.2.2
 

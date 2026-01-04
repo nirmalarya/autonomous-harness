@@ -1,0 +1,355 @@
+# Linear Backlog Mode - Example Project
+
+This example demonstrates using claude-harness with Linear for automated issue tracking and implementation.
+
+## Overview
+
+Build a simple task management web app where:
+- Linear tracks all issues and features
+- Agent fetches issues from Linear
+- Agent implements features autonomously
+- Status updates automatically (Todo → In Progress → Done)
+- Implementation details documented in Linear comments
+
+## Tech Stack
+
+- Frontend: Next.js 15 with App Router, TypeScript, Tailwind CSS
+- Backend: Next.js API routes
+- Database: PostgreSQL (via Docker)
+- Testing: Playwright for E2E tests
+
+## Setup Instructions
+
+### 1. Linear Setup
+
+```bash
+# Get API key from https://linear.app/settings/api
+export LINEAR_API_KEY='lin_api_...'
+
+# Create Linear project in your workspace
+# 1. Go to Linear → Create Project → "Task Manager Demo"
+# 2. Note the team_id and project_id (see below)
+
+# Create project marker file
+cat > .linear_project.json <<EOF
+{
+  "team_id": "your_team_id_here",
+  "project_id": "your_project_id_here",
+  "project_name": "Task Manager Demo"
+}
+EOF
+```
+
+### 2. Create Linear Issues
+
+Create these issues in your Linear project:
+
+**Infrastructure (3 issues):**
+1. "Set up Next.js project with TypeScript and Tailwind"
+   - Description: Initialize Next.js 15 with App Router, configure TypeScript, Tailwind CSS
+2. "Configure PostgreSQL database with Docker"
+   - Description: Docker Compose setup, connection pooling, migration system
+3. "Set up Playwright E2E testing framework"
+   - Description: Install Playwright, configure browsers, create test utilities
+
+**Core Features (8 issues):**
+4. "Implement task creation API and UI"
+   - Description: API endpoint for creating tasks, form component with validation
+5. "Implement task list view"
+   - Description: Display all tasks, support filtering by status
+6. "Implement task editing"
+   - Description: Edit task title, description, status; update API
+7. "Implement task deletion"
+   - Description: Delete task with confirmation dialog
+8. "Add task status transitions"
+   - Description: Move tasks between Todo, In Progress, Done states
+9. "Implement task search"
+   - Description: Search tasks by title/description
+10. "Add task priority levels"
+    - Description: High, Medium, Low priority; visual indicators
+11. "Implement task due dates"
+    - Description: Date picker, overdue highlighting
+
+**Polish (4 issues):**
+12. "Add loading states and error handling"
+    - Description: Skeleton loaders, error messages, retry logic
+13. "Implement responsive mobile layout"
+    - Description: Mobile-first design, touch-friendly controls
+14. "Add dark mode support"
+    - Description: Theme toggle, persistent preference
+15. "Create user onboarding flow"
+    - Description: Welcome modal, feature tour, sample tasks
+
+### 3. Create META Issue
+
+Create one META issue titled: `[META] Project Progress Tracker`
+
+Description:
+```
+Tracks autonomous coding session progress for Task Manager Demo.
+
+This issue will be updated after each feature implementation with:
+- Completed issues
+- Current work
+- Next steps
+- Blockers
+- Overall progress percentage
+```
+
+### 4. Run claude-harness
+
+```bash
+# Start autonomous implementation
+claude-harness --mode backlog --project-dir ./task-manager-demo
+
+# Agent will:
+# 1. Fetch all Todo issues from Linear
+# 2. Implement them one by one
+# 3. Update status as it progresses
+# 4. Add detailed implementation comments
+# 5. Update META issue with progress
+```
+
+## Expected Workflow
+
+### Session 1: Infrastructure Setup
+
+Agent will:
+1. Fetch issues 1-3 (infrastructure)
+2. Update issue #1 to "In Progress"
+3. Initialize Next.js project
+4. Configure TypeScript, Tailwind
+5. Create initial components
+6. Mark issue #1 as "Done"
+7. Add comment with file changes
+8. Update META issue: "Completed 1/15 issues (6%)"
+9. Repeat for issues #2-3
+
+### Session 2+: Feature Implementation
+
+Agent will:
+1. Pick next Todo issue (e.g., #4 "Task creation API")
+2. Update to "In Progress"
+3. Implement feature:
+   - Create API route
+   - Build UI component
+   - Add validation
+   - Write E2E test
+4. Run tests (must pass)
+5. Update to "Done"
+6. Add detailed comment:
+   ```
+   ✅ Implementation Complete
+
+   **Changes:**
+   - Created POST /api/tasks endpoint
+   - Added TaskForm component with validation
+   - Implemented Zod schema for task data
+   - E2E test passed with screenshots
+
+   **Files Modified:**
+   - app/api/tasks/route.ts
+   - components/TaskForm.tsx
+   - lib/validation.ts
+   - tests/e2e/tasks.spec.ts
+
+   **Test Results:**
+   - E2E: ✅ Passed
+   - Unit: ✅ Passed
+
+   **Commit:** abc123d
+   ```
+7. Update META issue
+8. Continue to next issue
+
+## Linear Comment Examples
+
+### Implementation Complete Comment
+
+```markdown
+✅ Implementation Complete
+
+**Changes:**
+- Created task list view with filtering
+- Added status filter dropdown
+- Implemented real-time updates
+- E2E test passed with screenshots
+
+**Files Modified:**
+- components/TaskList.tsx
+- components/StatusFilter.tsx
+- app/page.tsx
+- tests/e2e/task-list.spec.ts
+
+**Test Results:**
+- E2E: ✅ Passed (screenshot in .claude/verification/)
+- Unit: ✅ Passed
+
+**Commit:** def456a
+```
+
+### META Issue Update
+
+```markdown
+Session 3 Progress Update - January 3, 2026
+
+Completed Issues:
+- PRJ-1 Next.js setup ✅
+- PRJ-2 PostgreSQL config ✅
+- PRJ-3 Playwright setup ✅
+- PRJ-4 Task creation API ✅
+- PRJ-5 Task list view ✅
+
+Currently Working On:
+- PRJ-6 Task editing
+
+Next Up:
+- PRJ-7 Task deletion
+- PRJ-8 Status transitions
+- PRJ-9 Task search
+
+Overall Progress: 5/15 issues complete (33%)
+
+Blockers: None
+
+Architecture Notes:
+- Using App Router server actions for mutations
+- Zod validation on both client and server
+- Playwright tests run against local dev server
+```
+
+## State Files
+
+The agent maintains these state files:
+
+### `.linear_project.json`
+```json
+{
+  "team_id": "team_abc123",
+  "project_id": "proj_xyz789",
+  "project_name": "Task Manager Demo"
+}
+```
+
+### `.cursor/linear-backlog-state.json`
+```json
+{
+  "integration": "linear",
+  "team_id": "team_abc123",
+  "project_id": "proj_xyz789",
+  "project_name": "Task Manager Demo",
+  "meta_issue_id": "issue_meta_1",
+  "meta_issue_identifier": "PRJ-1",
+  "issues": [
+    {
+      "id": "issue_123",
+      "identifier": "PRJ-4",
+      "title": "Implement task creation API and UI",
+      "status": "Done",
+      "state_id": "state_done_id",
+      "completed": true,
+      "updated_at": "2026-01-03T10:30:00Z"
+    }
+  ],
+  "last_synced": "2026-01-03T12:00:00Z"
+}
+```
+
+### `feature_list.json`
+```json
+[
+  {
+    "id": 4,
+    "description": "Task creation API and UI (PRJ-4)",
+    "linear_issue_id": "issue_123",
+    "linear_identifier": "PRJ-4",
+    "passing": true,
+    "completed_at": "2026-01-03T10:30:00Z"
+  }
+]
+```
+
+## Testing
+
+Each feature must have E2E tests:
+
+```typescript
+// tests/e2e/task-creation.spec.ts
+import { test, expect } from '@playwright/test';
+
+test('should create a new task', async ({ page }) => {
+  await page.goto('http://localhost:3000');
+
+  // Fill task form
+  await page.fill('[data-testid="task-title"]', 'Buy groceries');
+  await page.fill('[data-testid="task-description"]', 'Milk, eggs, bread');
+  await page.click('[data-testid="submit-task"]');
+
+  // Verify task appears in list
+  await expect(page.locator('text=Buy groceries')).toBeVisible();
+
+  // Take screenshot for Linear comment
+  await page.screenshot({
+    path: '.claude/verification/task-creation.png'
+  });
+});
+```
+
+## Expected Timeline
+
+- **Infrastructure (Issues 1-3):** ~45-60 minutes
+- **Core Features (Issues 4-11):** ~2-3 hours
+- **Polish (Issues 12-15):** ~1-2 hours
+- **Total:** ~4-6 hours autonomous development
+
+## Success Criteria
+
+✅ All 15 Linear issues marked as "Done"
+✅ All E2E tests passing
+✅ META issue shows 100% completion
+✅ All implementation comments added to Linear
+✅ Git history clean with meaningful commits
+✅ Application fully functional
+
+## Troubleshooting
+
+### Linear API Key Issues
+
+```bash
+# Verify key is set
+echo $LINEAR_API_KEY
+
+# Should start with 'lin_api_'
+# If not, regenerate at https://linear.app/settings/api
+```
+
+### Team/Project ID Not Found
+
+```bash
+# Use Linear tools to discover IDs
+# In claude-harness session:
+linear_list_teams()  # Get team_id
+linear_list_projects(team_id)  # Get project_id
+```
+
+### Issues Not Syncing
+
+```bash
+# Check state file
+cat .cursor/linear-backlog-state.json
+
+# Verify Linear project has issues
+# Check Linear API status: https://linear.app/status
+```
+
+## Summary
+
+This example demonstrates:
+- Autonomous development driven by Linear issues
+- Automatic status updates (Todo → In Progress → Done)
+- Implementation documentation via Linear comments
+- META issue tracking for session handoffs
+- E2E testing for all features
+- Production-ready code with proper error handling
+
+The agent will work through all 15 issues autonomously, implementing a complete task management application while keeping Linear perfectly in sync.
