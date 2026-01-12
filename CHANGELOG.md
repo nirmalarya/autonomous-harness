@@ -5,6 +5,17 @@ All notable changes to autonomous-harness will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.1] - 2026-01-11
+
+### Fixed
+- **CLI UX Improvement**: Running `claude-harness` without required `--spec` parameter now shows helpful error message instead of cryptic FileNotFoundError
+- **Better Help Text**: Updated `--help` output to clearly mark `--spec` as REQUIRED and show practical examples
+- **Early Validation**: Added parameter validation before agent initialization for faster feedback
+
+**Full details:** [CHANGELOG_v3.3.1.md](CHANGELOG_v3.3.1.md)
+
+---
+
 ## [1.0.0] - 2024-12-24
 
 ### 🎉 Initial Release - SHERPA v1.0 Success

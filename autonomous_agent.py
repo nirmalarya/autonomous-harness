@@ -31,20 +31,20 @@ def parse_args() -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Start fresh project
-  python autonomous_agent_demo.py --project-dir ./claude_clone
-
-  # Use a specific model
-  python autonomous_agent_demo.py --project-dir ./claude_clone --model claude-sonnet-4-5-20250929
+  # Start fresh project (greenfield mode)
+  claude-harness --spec app_spec.txt --project-dir ./my_project
 
   # Limit iterations for testing
-  python autonomous_agent_demo.py --project-dir ./claude_clone --max-iterations 5
+  claude-harness --spec app_spec.txt --project-dir ./my_project --max-iterations 5
 
-  # Continue existing project
-  python autonomous_agent_demo.py --project-dir ./claude_clone
+  # Enhancement mode (add features to existing project)
+  claude-harness --mode enhancement --spec new_features.txt --project-dir ./existing_app
+
+  # Use a specific model
+  claude-harness --spec app_spec.txt --project-dir ./my_project --model claude-sonnet-4-5-20250929
 
 Environment Variables:
-  CLAUDE_CODE_OAUTH_TOKEN    Your Claude Code OAuth token (required)
+  CLAUDE_CODE_OAUTH_TOKEN    Your Claude Code OAuth token (REQUIRED)
                              Generate with: claude setup-token
         """,
     )
@@ -82,7 +82,7 @@ Environment Variables:
         "--spec",
         type=str,
         default=None,
-        help="Path to specification file (e.g., specs/autograph_bugfix_spec.txt). Required for enhancement/bugfix modes.",
+        help="Path to specification file (REQUIRED). Example: --spec /path/to/app_spec.txt",
     )
 
     parser.add_argument(
@@ -125,7 +125,7 @@ def main() -> None:
             from importlib.metadata import version
             pkg_version = version("claude-harness")
         except Exception:
-            pkg_version = "3.3.0"  # Fallback version
+            pkg_version = "3.3.1"  # Fallback version
         print(f"claude-harness v{pkg_version}")
         return
 
@@ -143,6 +143,19 @@ def main() -> None:
         print(f"Error: --spec is required for {args.mode} mode")
         print(f"\nExample: --spec specs/autograph_bugfix_spec.txt")
         return
+
+    # Validate spec file for greenfield mode too
+    if args.mode == "greenfield" and not args.spec:
+        # Check if default spec exists
+        default_spec = Path(__file__).parent / "specs" / "simple_example_spec.txt"
+        if not default_spec.exists():
+            print("Error: No spec file provided")
+            print("\nUsage:")
+            print("  claude-harness --spec <path-to-spec-file> --project-dir <directory>")
+            print("\nExample:")
+            print("  claude-harness --spec /path/to/app_spec.txt --project-dir ./my_project")
+            print("\nFor more information, run: claude-harness --help")
+            return
 
     # Automatically place projects in generations/ directory unless already specified
     project_dir = args.project_dir

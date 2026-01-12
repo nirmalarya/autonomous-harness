@@ -125,6 +125,17 @@ def copy_spec_to_project(project_dir: Path, spec_file: str = None, mode: str = "
         spec_source = Path(__file__).parent.parent / "specs" / "simple_example_spec.txt"
         spec_name = "app_spec.txt"
 
+        # Check if default spec exists
+        if not spec_source.exists():
+            raise FileNotFoundError(
+                f"\nError: No spec file provided and default spec not found.\n\n"
+                f"Usage: claude-harness --spec <path-to-spec-file>\n\n"
+                f"Example:\n"
+                f"  claude-harness --spec /path/to/app_spec.txt --project-dir ./my_project\n\n"
+                f"For greenfield mode, you need an app specification file.\n"
+                f"See the claude-harness documentation for spec file format."
+            )
+
     spec_dest = spec_dir / spec_name
 
     if not spec_dest.exists() or mode in ["enhancement", "bugfix"]:
