@@ -140,11 +140,17 @@ def create_client(project_dir: Path, model: str, mode: str = "greenfield") -> Cl
                 print(f"   - {item['plugin']}")
 
         if results['skipped_no_server']:
-            print(f"\n⚠️  Skipped (language server not installed):")
+            print(f"\nℹ️  LSP plugins skipped (optional - language server not installed):")
             for item in results['skipped_no_server']:
                 config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item['language'], {})
                 langs = ', '.join(config.get('languages', [item['language']]))
-                print(f"   - {langs}: {item['install_server_cmd']}")
+                print(f"   - {langs}")
+            print(f"   To enable LSP code intelligence (optional), install language servers:")
+            for item in results['skipped_no_server']:
+                config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item['language'], {})
+                langs = ', '.join(config.get('languages', [item['language']]))
+                print(f"     • {langs}: {item['install_server_cmd']}")
+            print(f"   Note: The harness works perfectly fine without LSP plugins.")
 
         if results['failed']:
             print(f"\n❌ Failed to install:")
