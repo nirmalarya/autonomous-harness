@@ -5,6 +5,17 @@ All notable changes to autonomous-harness will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.4] - 2026-01-11
+
+### Added
+- **Auto-Install Language Servers**: Automatically installs language servers (npm, go, rust) before installing plugins
+- **Zero-Setup LSP**: Both servers and plugins now install automatically - no manual intervention needed
+- **Enhanced Status Display**: Shows language server installation results separately from plugin results
+
+**Full details:** [CHANGELOG_v3.3.4.md](CHANGELOG_v3.3.4.md)
+
+---
+
 ## [3.3.3] - 2026-01-11
 
 ### Added

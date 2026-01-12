@@ -343,6 +343,98 @@ class LSPPluginManager:
 
         return "\n".join(lines)
 
+    def auto_install_language_servers(self, languages: Optional[List[str]] = None) -> Dict:
+        """
+        Automatically install language servers for detected languages.
+
+        Args:
+            languages: Languages to install servers for (auto-detected if None)
+
+        Returns:
+            Installation results with status per language
+        """
+        if languages is None:
+            languages = self.detect_languages()
+
+        results = {
+            "installed": [],
+            "failed": [],
+            "already_installed": [],
+            "unsupported": []
+        }
+
+        for lang in languages:
+            if lang not in self.OFFICIAL_LSP_PLUGINS:
+                continue
+
+            config = self.OFFICIAL_LSP_PLUGINS[lang]
+
+            # Check if server already installed
+            if self.check_server_installed(lang):
+                results["already_installed"].append({
+                    "language": lang,
+                    "server": config["server_binary"]
+                })
+                continue
+
+            # Get install command
+            install_cmd = config["install_server"]
+
+            # Skip if no automatic install command available (e.g., Java, C++)
+            if install_cmd.startswith("#"):
+                results["unsupported"].append({
+                    "language": lang,
+                    "reason": "Manual installation required",
+                    "instructions": install_cmd
+                })
+                continue
+
+            # Parse and execute install command
+            try:
+                # Execute the install command
+                result = subprocess.run(
+                    install_cmd,
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=120  # 2 minutes for npm/go installs
+                )
+
+                if result.returncode == 0:
+                    # Verify installation succeeded
+                    if self.check_server_installed(lang):
+                        results["installed"].append({
+                            "language": lang,
+                            "server": config["server_binary"],
+                            "command": install_cmd
+                        })
+                    else:
+                        results["failed"].append({
+                            "language": lang,
+                            "server": config["server_binary"],
+                            "error": "Installation succeeded but server not found in PATH"
+                        })
+                else:
+                    results["failed"].append({
+                        "language": lang,
+                        "server": config["server_binary"],
+                        "error": result.stderr.strip()[:200]  # Limit error length
+                    })
+            except subprocess.TimeoutExpired:
+                results["failed"].append({
+                    "language": lang,
+                    "server": config["server_binary"],
+                    "error": "Installation timeout (>2 minutes)"
+                })
+            except Exception as e:
+                results["failed"].append({
+                    "language": lang,
+                    "server": config["server_binary"],
+                    "error": str(e)[:200]
+                })
+
+        return results
+
     def auto_install_plugins(self, languages: Optional[List[str]] = None) -> Dict:
         """
         Automatically install LSP plugins for detected languages.
@@ -433,13 +525,14 @@ class LSPPluginManager:
 
         return results
 
-    def setup_lsp(self, languages: Optional[List[str]] = None, auto_install: bool = True) -> Dict:
+    def setup_lsp(self, languages: Optional[List[str]] = None, auto_install: bool = True, auto_install_servers: bool = True) -> Dict:
         """
         Setup LSP plugins for project (with optional auto-installation).
 
         Args:
             languages: Languages to configure (auto-detected if None)
             auto_install: Automatically install plugins if True (default)
+            auto_install_servers: Automatically install language servers if True (default)
 
         Returns:
             Setup summary with installation results
@@ -461,6 +554,12 @@ class LSPPluginManager:
 
         # Auto-install if requested
         if auto_install and languages:
+            # First, install language servers if needed
+            if auto_install_servers:
+                server_results = self.auto_install_language_servers(languages)
+                result["auto_install_server_results"] = server_results
+
+            # Then install plugins
             install_results = self.auto_install_plugins(languages)
             result["auto_install_results"] = install_results
 

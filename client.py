@@ -126,36 +126,57 @@ def create_client(project_dir: Path, model: str, mode: str = "greenfield") -> Cl
     print(f"   - LSP marketplace: {lsp_setup['marketplace']}")
 
     # Print LSP auto-installation results
-    if lsp_setup['languages'] and 'auto_install_results' in lsp_setup:
-        results = lsp_setup['auto_install_results']
+    if lsp_setup['languages']:
+        # Show language server installation results
+        if 'auto_install_server_results' in lsp_setup:
+            server_results = lsp_setup['auto_install_server_results']
 
-        if results['installed']:
-            print(f"\n✅ Auto-installed LSP plugins:")
-            for item in results['installed']:
-                print(f"   - {item['plugin']}")
+            if server_results['installed']:
+                print(f"\n✅ Auto-installed language servers:")
+                for item in server_results['installed']:
+                    config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item['language'], {})
+                    langs = ', '.join(config.get('languages', [item['language']]))
+                    print(f"   - {langs}: {item['server']}")
 
-        if results['already_installed']:
-            print(f"\n✓ Already installed:")
-            for item in results['already_installed']:
-                print(f"   - {item['plugin']}")
+            if server_results['failed']:
+                print(f"\n❌ Failed to install language servers:")
+                for item in server_results['failed']:
+                    config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item['language'], {})
+                    langs = ', '.join(config.get('languages', [item['language']]))
+                    error = item['error'][:100]  # Truncate long errors
+                    print(f"   - {langs}: {error}")
 
-        if results['skipped_no_server']:
-            print(f"\nℹ️  LSP plugins skipped (optional - language server not installed):")
-            for item in results['skipped_no_server']:
-                config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item['language'], {})
-                langs = ', '.join(config.get('languages', [item['language']]))
-                print(f"   - {langs}")
-            print(f"   To enable LSP code intelligence (optional), install language servers:")
-            for item in results['skipped_no_server']:
-                config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item['language'], {})
-                langs = ', '.join(config.get('languages', [item['language']]))
-                print(f"     • {langs}: {item['install_server_cmd']}")
-            print(f"   Note: The harness works perfectly fine without LSP plugins.")
+        # Show plugin installation results
+        if 'auto_install_results' in lsp_setup:
+            results = lsp_setup['auto_install_results']
 
-        if results['failed']:
-            print(f"\n❌ Failed to install:")
-            for item in results['failed']:
-                print(f"   - {item['plugin']}: {item['error']}")
+            if results['installed']:
+                print(f"\n✅ Auto-installed LSP plugins:")
+                for item in results['installed']:
+                    print(f"   - {item['plugin']}")
+
+            if results['already_installed']:
+                print(f"\n✓ Already installed:")
+                for item in results['already_installed']:
+                    print(f"   - {item['plugin']}")
+
+            if results['skipped_no_server']:
+                print(f"\nℹ️  LSP plugins skipped (optional - language server not installed):")
+                for item in results['skipped_no_server']:
+                    config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item['language'], {})
+                    langs = ', '.join(config.get('languages', [item['language']]))
+                    print(f"   - {langs}")
+                print(f"   To enable LSP code intelligence (optional), install language servers:")
+                for item in results['skipped_no_server']:
+                    config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item['language'], {})
+                    langs = ', '.join(config.get('languages', [item['language']]))
+                    print(f"     • {langs}: {item['install_server_cmd']}")
+                print(f"   Note: The harness works perfectly fine without LSP plugins.")
+
+            if results['failed']:
+                print(f"\n❌ Failed to install LSP plugins:")
+                for item in results['failed']:
+                    print(f"   - {item['plugin']}: {item['error']}")
 
     print()
 
