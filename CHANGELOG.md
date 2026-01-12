@@ -5,6 +5,17 @@ All notable changes to autonomous-harness will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.3] - 2026-01-11
+
+### Added
+- **Auto-Install LSP Plugins**: Automatically installs LSP plugins from marketplace based on detected tech stack
+- **Spec File Analysis**: Detects languages from spec file keywords for greenfield projects
+- **Smart Status Output**: Shows which plugins were installed/skipped/failed with clear messages
+
+**Full details:** [CHANGELOG_v3.3.3.md](CHANGELOG_v3.3.3.md)
+
+---
+
 ## [3.3.2] - 2026-01-11
 
 ### Fixed

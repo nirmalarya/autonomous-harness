@@ -115,51 +115,125 @@ class LSPPluginManager:
         """
         self.project_dir = project_dir
 
+    def detect_languages_from_spec(self, spec_file: Optional[Path] = None) -> List[str]:
+        """
+        Detect languages from spec file content (for greenfield projects).
+
+        Args:
+            spec_file: Path to spec file (checks project_dir/spec/app_spec.txt if None)
+
+        Returns:
+            List of detected language identifiers based on tech stack mentions
+        """
+        if spec_file is None:
+            spec_file = self.project_dir / "spec" / "app_spec.txt"
+
+        if not spec_file.exists():
+            return []
+
+        try:
+            spec_content = spec_file.read_text().lower()
+        except Exception:
+            return []
+
+        detected = []
+
+        # Check for tech stack keywords
+        if any(word in spec_content for word in ["typescript", "react", "nextjs", "next.js", "vue", "angular", "node.js", "npm", "vite"]):
+            detected.append("typescript")
+
+        if any(word in spec_content for word in ["python", "django", "flask", "fastapi", "uvicorn", "pip", "pytest"]):
+            detected.append("python")
+
+        if any(word in spec_content for word in ["golang", "go ", " go\n"]):
+            detected.append("go")
+
+        if any(word in spec_content for word in ["rust", "cargo"]):
+            detected.append("rust")
+
+        if any(word in spec_content for word in ["java", "spring", "maven", "gradle"]):
+            detected.append("java")
+
+        if any(word in spec_content for word in ["c++", "cpp", "clang", "cmake"]):
+            detected.append("c_cpp")
+
+        if any(word in spec_content for word in ["c#", "csharp", ".net", "dotnet"]):
+            detected.append("csharp")
+
+        if any(word in spec_content for word in ["php", "laravel", "symfony", "composer"]):
+            detected.append("php")
+
+        if any(word in spec_content for word in ["swift", "ios", "xcode"]):
+            detected.append("swift")
+
+        if any(word in spec_content for word in ["lua"]):
+            detected.append("lua")
+
+        return detected
+
     def detect_languages(self) -> List[str]:
         """
         Auto-detect languages used in project.
+
+        First tries to detect from spec file (for greenfield),
+        then from project files (for existing projects).
 
         Returns:
             List of detected language identifiers
         """
         detected = []
 
+        # Try spec file first (for greenfield projects)
+        spec_languages = self.detect_languages_from_spec()
+        if spec_languages:
+            detected.extend(spec_languages)
+
         # Check for common project files/patterns
         if (self.project_dir / "package.json").exists() or \
            (self.project_dir / "tsconfig.json").exists():
-            detected.append("typescript")
+            if "typescript" not in detected:
+                detected.append("typescript")
 
         if (self.project_dir / "requirements.txt").exists() or \
            (self.project_dir / "pyproject.toml").exists() or \
            (self.project_dir / "setup.py").exists():
-            detected.append("python")
+            if "python" not in detected:
+                detected.append("python")
 
         if (self.project_dir / "go.mod").exists():
-            detected.append("go")
+            if "go" not in detected:
+                detected.append("go")
 
         if (self.project_dir / "Cargo.toml").exists():
-            detected.append("rust")
+            if "rust" not in detected:
+                detected.append("rust")
 
         if (self.project_dir / "pom.xml").exists() or \
            (self.project_dir / "build.gradle").exists():
-            detected.append("java")
+            if "java" not in detected:
+                detected.append("java")
 
         if (self.project_dir / "CMakeLists.txt").exists() or \
            list(self.project_dir.glob("*.c")) or \
            list(self.project_dir.glob("*.cpp")):
-            detected.append("c_cpp")
+            if "c_cpp" not in detected:
+                detected.append("c_cpp")
 
         if list(self.project_dir.glob("*.csproj")):
-            detected.append("csharp")
+            if "csharp" not in detected:
+                detected.append("csharp")
 
         if (self.project_dir / "composer.json").exists():
-            detected.append("php")
+            if "php" not in detected:
+                detected.append("php")
 
         if list(self.project_dir.glob("*.swift")):
-            detected.append("swift")
+            if "swift" not in detected:
+                detected.append("swift")
 
         if list(self.project_dir.glob("*.lua")):
-            detected.append("lua")
+            if "lua" not in detected:
+                detected.append("lua")
 
         return detected
 
@@ -269,15 +343,106 @@ class LSPPluginManager:
 
         return "\n".join(lines)
 
-    def setup_lsp(self, languages: Optional[List[str]] = None) -> Dict:
+    def auto_install_plugins(self, languages: Optional[List[str]] = None) -> Dict:
         """
-        Generate LSP setup information.
+        Automatically install LSP plugins for detected languages.
+
+        Args:
+            languages: Languages to install (auto-detected if None)
+
+        Returns:
+            Installation results with status per language
+        """
+        if languages is None:
+            languages = self.detect_languages()
+
+        results = {
+            "installed": [],
+            "failed": [],
+            "skipped_no_server": [],
+            "already_installed": []
+        }
+
+        for lang in languages:
+            if lang not in self.OFFICIAL_LSP_PLUGINS:
+                continue
+
+            config = self.OFFICIAL_LSP_PLUGINS[lang]
+            plugin_name = f"{config['plugin']}@{config['marketplace']}"
+
+            # Check if server is installed
+            if not self.check_server_installed(lang):
+                results["skipped_no_server"].append({
+                    "language": lang,
+                    "plugin": plugin_name,
+                    "install_server_cmd": config["install_server"]
+                })
+                continue
+
+            # Check if plugin already installed
+            check_cmd = ["claude", "plugin", "list"]
+            try:
+                check_result = subprocess.run(
+                    check_cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+                if config['plugin'] in check_result.stdout:
+                    results["already_installed"].append({
+                        "language": lang,
+                        "plugin": plugin_name
+                    })
+                    continue
+            except (subprocess.TimeoutExpired, FileNotFoundError):
+                # If claude CLI not available, skip check
+                pass
+
+            # Install plugin
+            install_cmd = ["claude", "plugin", "install", plugin_name]
+            try:
+                result = subprocess.run(
+                    install_cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                )
+                if result.returncode == 0:
+                    results["installed"].append({
+                        "language": lang,
+                        "plugin": plugin_name
+                    })
+                else:
+                    results["failed"].append({
+                        "language": lang,
+                        "plugin": plugin_name,
+                        "error": result.stderr.strip()
+                    })
+            except subprocess.TimeoutExpired:
+                results["failed"].append({
+                    "language": lang,
+                    "plugin": plugin_name,
+                    "error": "Installation timeout"
+                })
+            except FileNotFoundError:
+                results["failed"].append({
+                    "language": lang,
+                    "plugin": plugin_name,
+                    "error": "claude CLI not found"
+                })
+
+        return results
+
+    def setup_lsp(self, languages: Optional[List[str]] = None, auto_install: bool = True) -> Dict:
+        """
+        Setup LSP plugins for project (with optional auto-installation).
 
         Args:
             languages: Languages to configure (auto-detected if None)
+            auto_install: Automatically install plugins if True (default)
 
         Returns:
-            Setup summary with installation commands
+            Setup summary with installation results
         """
         if languages is None:
             languages = self.detect_languages()
@@ -285,7 +450,7 @@ class LSPPluginManager:
         install_commands = self.get_plugin_install_commands(languages)
         installation_guide = self.get_installation_guide(languages)
 
-        return {
+        result = {
             "languages": languages,
             "install_commands": install_commands,
             "installation_guide": installation_guide,
@@ -293,3 +458,10 @@ class LSPPluginManager:
             "requires_version": "1.0.33+",
             "enable_command": "ENABLE_LSP_TOOL=1 (automatically enabled when plugins installed)"
         }
+
+        # Auto-install if requested
+        if auto_install and languages:
+            install_results = self.auto_install_plugins(languages)
+            result["auto_install_results"] = install_results
+
+        return result

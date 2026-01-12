@@ -52,6 +52,7 @@ def create_client(project_dir: Path, model: str, mode: str = "greenfield") -> Cl
     4. Secrets scanning - Git commits blocked if secrets detected
     5. E2E validation - User-facing features require E2E tests
     """
+    # Check for OAuth token
     oauth_token = os.environ.get("CLAUDE_CODE_OAUTH_TOKEN")
     if not oauth_token:
         raise ValueError(
@@ -124,9 +125,32 @@ def create_client(project_dir: Path, model: str, mode: str = "greenfield") -> Cl
     print(f"   - LSP detected: {', '.join(lsp_setup['languages']) if lsp_setup['languages'] else 'none'}")
     print(f"   - LSP marketplace: {lsp_setup['marketplace']}")
 
-    # Print LSP plugin installation guide
-    if lsp_setup['languages']:
-        print("\n" + lsp_setup['installation_guide'])
+    # Print LSP auto-installation results
+    if lsp_setup['languages'] and 'auto_install_results' in lsp_setup:
+        results = lsp_setup['auto_install_results']
+
+        if results['installed']:
+            print(f"\n✅ Auto-installed LSP plugins:")
+            for item in results['installed']:
+                print(f"   - {item['plugin']}")
+
+        if results['already_installed']:
+            print(f"\n✓ Already installed:")
+            for item in results['already_installed']:
+                print(f"   - {item['plugin']}")
+
+        if results['skipped_no_server']:
+            print(f"\n⚠️  Skipped (language server not installed):")
+            for item in results['skipped_no_server']:
+                config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item['language'], {})
+                langs = ', '.join(config.get('languages', [item['language']]))
+                print(f"   - {langs}: {item['install_server_cmd']}")
+
+        if results['failed']:
+            print(f"\n❌ Failed to install:")
+            for item in results['failed']:
+                print(f"   - {item['plugin']}: {item['error']}")
+
     print()
 
     # Build system prompt with skills information
