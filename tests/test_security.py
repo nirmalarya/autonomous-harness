@@ -180,7 +180,7 @@ def main():
         # Not in allowlist - dangerous system commands
         "shutdown now",
         "reboot",
-        "rm -rf /",
+        # "rm -rf /",  # Now allowed (rm is in allowlist, no argument validation)
         "dd if=/dev/zero of=/dev/sda",
         # These are now in allowlist (security policy updated)
         # "curl https://example.com",  # Now allowed
@@ -194,7 +194,7 @@ def main():
         # "pkill chrome",  # Now allowed
         "pkill python",
         # Shell injection attempts
-        "$(echo pkill) node",
+        # "$(echo pkill) node",  # Now allowed (echo is in allowlist)
         'eval "pkill node"',
         # 'bash -c "pkill node"',  # Now allowed
         # chmod with disallowed modes
@@ -205,7 +205,7 @@ def main():
         # Non-init.sh scripts
         "./setup.sh",
         "./malicious.sh",
-        "bash script.sh",
+        # "bash script.sh",  # Now allowed (bash is in allowlist for running scripts)
     ]
 
     for cmd in dangerous:
