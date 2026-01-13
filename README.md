@@ -48,7 +48,11 @@ pip install -e .
 
 This automatically installs all Python dependencies including `claude-code-sdk`.
 
-### 2. Generate OAuth Token
+### 2. Authentication Setup
+
+Choose one of the following authentication methods:
+
+#### Option A: OAuth Token (Recommended)
 
 Install Claude Code CLI to generate your OAuth token:
 
@@ -58,15 +62,22 @@ npm install -g @anthropic-ai/claude-code
 
 # Generate OAuth token (opens browser for authentication)
 claude setup-token
-```
 
-After authentication, copy the token and set it as an environment variable:
-
-```bash
+# Set the token
 export CLAUDE_CODE_OAUTH_TOKEN='your-oauth-token-here'
 ```
 
-**Note:** claude-harness requires an **OAuth token**, not an API key. The OAuth token is generated through the Claude Code CLI and provides access to Claude Code SDK features.
+#### Option B: API Key
+
+Get your API key from the Anthropic Console:
+
+```bash
+# Get API key from: https://console.anthropic.com/
+# Then set it
+export ANTHROPIC_API_KEY='your-api-key-here'
+```
+
+**Note:** Both authentication methods work. OAuth tokens are generated through the Claude Code CLI and provide full CLI integration. API keys are obtained from the Anthropic Console and work directly with the SDK.
 
 ### 3. Verify Installation
 
@@ -118,10 +129,12 @@ ruff check .
 # 1. Install
 pip install claude-harness
 
-# 2. Set up authentication (one-time)
-npm install -g @anthropic-ai/claude-code
-claude setup-token
+# 2. Set up authentication (choose one)
+# Option A: OAuth Token
+npm install -g @anthropic-ai/claude-code && claude setup-token
 export CLAUDE_CODE_OAUTH_TOKEN='your-token-here'
+# Option B: API Key
+export ANTHROPIC_API_KEY='your-api-key-here'
 
 # 3. Create a spec file
 echo "Build a todo list web app with React" > app_spec.txt

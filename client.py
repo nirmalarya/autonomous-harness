@@ -51,14 +51,27 @@ def create_client(project_dir: Path, model: str, mode: str = "greenfield") -> Cl
     4. Secrets scanning - Git commits blocked if secrets detected
     5. E2E validation - User-facing features require E2E tests
     """
-    # Check for OAuth token
+    # Check for authentication (supports both OAuth token and API key)
     oauth_token = os.environ.get("CLAUDE_CODE_OAUTH_TOKEN")
-    if not oauth_token:
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+
+    if not oauth_token and not api_key:
         raise ValueError(
-            "CLAUDE_CODE_OAUTH_TOKEN environment variable not set.\n"
-            "Generate your OAuth token using: claude setup-token\n"
-            "Then set: export CLAUDE_CODE_OAUTH_TOKEN='your-oauth-token-here'"
+            "Authentication required. Set either:\n\n"
+            "Option 1 - OAuth Token (recommended for CLI):\n"
+            "  Generate with: claude setup-token\n"
+            "  Then set: export CLAUDE_CODE_OAUTH_TOKEN='your-oauth-token'\n\n"
+            "Option 2 - API Key:\n"
+            "  Get from: https://console.anthropic.com/\n"
+            "  Then set: export ANTHROPIC_API_KEY='your-api-key'"
         )
+
+    # Determine which authentication method to use
+    auth_method = "OAuth token" if oauth_token else "API key"
+    print(f"Authentication: Using {auth_method}")
+
+    # API key takes precedence if both are set
+    client_api_key = api_key if api_key else oauth_token
 
     # Setup MCP servers dynamically based on mode
     mcp_setup = MCPServerSetup()
@@ -197,6 +210,7 @@ def create_client(project_dir: Path, model: str, mode: str = "greenfield") -> Cl
 
     return ClaudeSDKClient(
         options=ClaudeCodeOptions(
+            api_key=client_api_key,  # Support both ANTHROPIC_API_KEY and CLAUDE_CODE_OAUTH_TOKEN
             model=model,
             system_prompt=system_prompt,
             allowed_tools=[

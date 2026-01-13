@@ -125,17 +125,22 @@ def main() -> None:
 
             pkg_version = version("claude-harness")
         except Exception:
-            pkg_version = "3.4.0"  # Fallback version
+            pkg_version = "3.5.0"  # Fallback version
         print(f"claude-harness v{pkg_version}")
         return
 
-    # Check for OAuth token (only when actually running)
-    if not os.environ.get("CLAUDE_CODE_OAUTH_TOKEN"):
-        print("Error: CLAUDE_CODE_OAUTH_TOKEN environment variable not set")
-        print("\nGenerate your OAuth token using Claude Code CLI:")
-        print("  claude setup-token")
-        print("\nThen set it:")
-        print("  export CLAUDE_CODE_OAUTH_TOKEN='your-oauth-token-here'")
+    # Check for authentication (supports both OAuth token and API key)
+    oauth_token = os.environ.get("CLAUDE_CODE_OAUTH_TOKEN")
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+
+    if not oauth_token and not api_key:
+        print("Error: Authentication required")
+        print("\nOption 1 - OAuth Token (recommended for CLI):")
+        print("  1. Generate with: claude setup-token")
+        print("  2. Then set: export CLAUDE_CODE_OAUTH_TOKEN='your-oauth-token'")
+        print("\nOption 2 - API Key:")
+        print("  1. Get from: https://console.anthropic.com/")
+        print("  2. Then set: export ANTHROPIC_API_KEY='your-api-key'")
         return
 
     # Validate spec file for enhancement/bugfix modes

@@ -19,8 +19,10 @@ pip install -e .
 # Install dev dependencies
 pip install pytest pytest-asyncio ruff mypy types-pyyaml build
 
-# Set OAuth token (required for testing)
-export CLAUDE_CODE_OAUTH_TOKEN='your-token-here'
+# Set authentication (choose one)
+export CLAUDE_CODE_OAUTH_TOKEN='your-token-here'  # OAuth token
+# OR
+export ANTHROPIC_API_KEY='your-api-key-here'      # API key
 
 # Verify installation
 claude-harness --version
@@ -334,7 +336,7 @@ Change feature count: Edit `initializer_prompt.md`, modify "200 features" requir
 
 ## Troubleshooting
 
-**"OAuth token not set"**: Run `claude setup-token`, then `export CLAUDE_CODE_OAUTH_TOKEN='...'`
+**"Authentication required"**: Set either `CLAUDE_CODE_OAUTH_TOKEN` (run `claude setup-token`) or `ANTHROPIC_API_KEY` (from https://console.anthropic.com/)
 
 **"Command blocked"**: Check `security.py` → add to `ALLOWED_COMMANDS` if legitimate
 
