@@ -29,34 +29,9 @@ Production-ready autonomous coding harness using Claude Code SDK. Build complete
 - Browser cleanup hooks
 - MCP auto-configuration (Context7, Puppeteer)
 
-## Prerequisites
-
-**Required:** Install the latest versions of both Claude Code and the Claude Agent SDK:
-
-```bash
-# Install Claude Code CLI (latest version required)
-npm install -g @anthropic-ai/claude-code
-
-# Install Python dependencies
-pip install -r requirements.txt
-```
-
-Verify your installations:
-```bash
-claude --version  # Should be latest version
-pip show claude-code-sdk  # Check SDK is installed
-```
-
-**OAuth Token:** Generate and set your Claude Code OAuth token:
-```bash
-# Generate the token using Claude Code CLI
-claude setup-token
-
-# Set the environment variable
-export CLAUDE_CODE_OAUTH_TOKEN='your-oauth-token-here'
-```
-
 ## Installation
+
+### 1. Install claude-harness
 
 ```bash
 # Install from PyPI (recommended)
@@ -69,8 +44,33 @@ pip install git+https://github.com/nirmalarya/claude-harness.git
 git clone https://github.com/nirmalarya/claude-harness.git
 cd claude-harness
 pip install -e .
+```
 
-# Verify installation
+This automatically installs all Python dependencies including `claude-code-sdk`.
+
+### 2. Generate OAuth Token
+
+Install Claude Code CLI to generate your OAuth token:
+
+```bash
+# Install Claude Code CLI
+npm install -g @anthropic-ai/claude-code
+
+# Generate OAuth token (opens browser for authentication)
+claude setup-token
+```
+
+After authentication, copy the token and set it as an environment variable:
+
+```bash
+export CLAUDE_CODE_OAUTH_TOKEN='your-oauth-token-here'
+```
+
+**Note:** claude-harness requires an **OAuth token**, not an API key. The OAuth token is generated through the Claude Code CLI and provides access to Claude Code SDK features.
+
+### 3. Verify Installation
+
+```bash
 claude-harness --version
 ```
 
@@ -115,24 +115,36 @@ ruff check .
 ## Quick Start
 
 ```bash
-# Set OAuth token (required)
+# 1. Install
+pip install claude-harness
+
+# 2. Set up authentication (one-time)
+npm install -g @anthropic-ai/claude-code
+claude setup-token
 export CLAUDE_CODE_OAUTH_TOKEN='your-token-here'
 
-# Build a new app
-claude-harness --project-dir ./my_project
+# 3. Create a spec file
+echo "Build a todo list web app with React" > app_spec.txt
 
-# Test with limited iterations
-claude-harness --project-dir ./my_project --max-iterations 3
+# 4. Run the harness
+claude-harness --project-dir ./my_project --spec app_spec.txt
 
-# Enhancement mode (existing projects)
-claude-harness --mode enhancement --project-dir ./existing-app --spec ./features.txt
+# Or test with limited iterations
+claude-harness --project-dir ./my_project --spec app_spec.txt --max-iterations 3
+```
+
+**Other modes:**
+
+```bash
+# Enhancement mode (add features to existing project)
+claude-harness --mode enhancement --project-dir ./existing-app --spec features.txt
 
 # Backlog mode with Linear (NEW in v3.3.0)
 export LINEAR_API_KEY='lin_api_...'
 claude-harness --mode backlog --project-dir ./my_project
 ```
 
-📖 **[Read the full User Guide →](USER_GUIDE.md)**
+📖 **[Read the full User Guide →](docs/USER_GUIDE.md)**
 
 ## Backlog Mode Integrations (NEW in v3.3.0)
 
