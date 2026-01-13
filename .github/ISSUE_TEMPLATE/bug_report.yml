@@ -1,0 +1,82 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this bug! Please fill out the form below.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is. What did you expect to happen vs what actually happened?
+      placeholder: Describe the bug...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Provide step-by-step instructions to reproduce the issue
+      placeholder: |
+        1. Run command '...'
+        2. See error '...'
+        3. Expected '...' but got '...'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      description: What OS are you running on?
+      options:
+        - macOS
+        - Linux
+        - Windows
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python Version
+      description: What version of Python are you using?
+      placeholder: "3.10, 3.11, 3.12, etc."
+    validations:
+      required: true
+
+  - type: input
+    id: harness-version
+    attributes:
+      label: claude-harness Version
+      description: What version of claude-harness are you using? Run `claude-harness --version`
+      placeholder: "3.3.4"
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command & Flags
+      description: What command did you run? Include all flags.
+      placeholder: "claude-harness --project-dir ./my_project --max-iterations 5"
+      render: bash
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Messages / Logs
+      description: Copy and paste any relevant error messages or log output
+      render: shell
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem (screenshots, related issues, etc.)

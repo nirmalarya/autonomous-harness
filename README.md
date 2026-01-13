@@ -74,6 +74,44 @@ pip install -e .
 claude-harness --version
 ```
 
+## Contributing
+
+We welcome contributions from the community! Whether it's bug fixes, new features, or documentation improvements - all contributions are appreciated.
+
+### Quick Links
+
+- [Contributing Guide](CONTRIBUTING.md) - Full contribution guidelines
+- [Development Setup](docs/DEVELOPMENT.md) - Detailed setup instructions
+- [Code of Conduct](CODE_OF_CONDUCT.md) - Community standards
+- [Issue Tracker](https://github.com/nirmalarya/claude-harness/issues) - Report bugs or request features
+
+### Quick Start for Contributors
+
+1. **Fork and clone** the repository
+2. **Create a feature branch**: `git checkout -b feature/your-feature-name`
+3. **Make your changes** and add tests
+4. **Run tests and linting**: `pytest tests/test_*.py -v && ruff check .`
+5. **Commit** with conventional format: `feat: add feature description`
+6. **Push and create PR** with a clear description
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for complete details.
+
+### Development Setup
+
+```bash
+# Install in editable mode
+pip install -e .
+
+# Install development dependencies
+pip install pytest pytest-asyncio ruff mypy types-pyyaml
+
+# Run tests
+pytest tests/test_*.py -v
+
+# Run linting
+ruff check .
+```
+
 ## Quick Start
 
 ```bash
