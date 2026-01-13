@@ -5,6 +5,28 @@ All notable changes to autonomous-harness will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - 2026-01-13
+
+### Added
+- **Contributing Infrastructure**: Comprehensive contribution framework for open-source community
+  - GitHub issue templates (bug report, feature request)
+  - Pull request template with quality checklist
+  - CI workflow with test matrix (Python 3.10-3.14), linting (ruff), type checking (mypy), and build verification
+  - CONTRIBUTING.md with full contribution guidelines
+  - docs/DEVELOPMENT.md with detailed setup instructions
+  - CLAUDE.md guide for future Claude Code instances
+- **Code Quality Tools**: Configured ruff (linting + formatting) and mypy (type checking) in pyproject.toml
+- **Updated README**: Added Contributing section with quick links and development setup
+
+### Changed
+- **Project Structure**: Reorganized for better Python package conventions
+  - Moved test files to `tests/` directory
+  - Moved USER_GUIDE.md to `docs/`
+  - Moved old documentation to `docs/archive/`
+  - Moved version changelogs to `docs/changelogs/`
+
+---
+
 ## [3.3.4] - 2026-01-11
 
 ### Added
