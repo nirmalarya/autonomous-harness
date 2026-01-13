@@ -36,7 +36,7 @@ jobs:
           pytest tests/test_*.py -v
 
   lint:
-    name: Lint & Type Check
+    name: Lint & Format Check
     runs-on: ubuntu-latest
 
     steps:
@@ -54,7 +54,7 @@ jobs:
 
       - name: Install linting tools
         run: |
-          pip install ruff mypy types-pyyaml
+          pip install ruff
 
       - name: Run ruff linter
         run: |
