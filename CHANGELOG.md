@@ -5,6 +5,23 @@ All notable changes to autonomous-harness will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Dual Authentication Support**: claude-harness now supports both authentication methods
+  - `ANTHROPIC_API_KEY`: Direct API key from Anthropic Console (https://console.anthropic.com/)
+  - `CLAUDE_CODE_OAUTH_TOKEN`: OAuth token from Claude Code CLI (existing method)
+  - Both methods work identically - choose based on your workflow preference
+  - Improved error messages guide users to both authentication options
+
+### Changed
+- Updated client.py to accept both `ANTHROPIC_API_KEY` and `CLAUDE_CODE_OAUTH_TOKEN`
+- Updated autonomous_agent.py to check for both authentication methods
+- Updated README.md with clear documentation of both authentication options
+- Updated CLAUDE.md with dual authentication setup instructions
+
+---
+
 ## [3.4.0] - 2026-01-13
 
 ### Added
