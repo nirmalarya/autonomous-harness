@@ -8,7 +8,7 @@ Run with: python test_security.py
 """
 
 import asyncio
-from pathlib import Path
+import sys
 
 from security import (
     bash_security_hook,
