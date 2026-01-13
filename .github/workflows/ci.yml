@@ -27,13 +27,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .
 
-      - name: Install dev dependencies
-        run: |
-          pip install pytest pytest-asyncio
-
       - name: Run tests
         run: |
-          pytest tests/test_*.py -v
+          for test in tests/test_*.py; do
+            echo "Running $test..."
+            python "$test" || exit 1
+          done
 
   lint:
     name: Lint & Format Check
