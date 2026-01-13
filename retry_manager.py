@@ -12,7 +12,6 @@ Features:
 
 import json
 from pathlib import Path
-from typing import Optional, Dict, List, Set
 
 
 class RetryManager:
@@ -28,9 +27,9 @@ class RetryManager:
         """
         self.project_dir = project_dir
         self.max_retries = max_retries
-        self.retry_count: Dict[str, int] = {}  # {feature_id: count}
-        self.skipped_features: Set[str] = set()
-        self.retry_history: List[Dict] = []  # Track all retry attempts
+        self.retry_count: dict[str, int] = {}  # {feature_id: count}
+        self.skipped_features: set[str] = set()
+        self.retry_history: list[dict] = []  # Track all retry attempts
 
         # State file for persistence across sessions
         self.state_file = project_dir / ".claude" / "retry_state.json"
@@ -40,23 +39,23 @@ class RetryManager:
         """Load retry state from disk."""
         if self.state_file.exists():
             try:
-                with open(self.state_file, 'r') as f:
+                with open(self.state_file) as f:
                     state = json.load(f)
-                    self.retry_count = state.get('retry_count', {})
-                    self.skipped_features = set(state.get('skipped_features', []))
-                    self.retry_history = state.get('retry_history', [])
-            except (json.JSONDecodeError, IOError):
+                    self.retry_count = state.get("retry_count", {})
+                    self.skipped_features = set(state.get("skipped_features", []))
+                    self.retry_history = state.get("retry_history", [])
+            except (OSError, json.JSONDecodeError):
                 pass  # Start fresh if state file is corrupted
 
     def _save_state(self):
         """Save retry state to disk."""
         self.state_file.parent.mkdir(parents=True, exist_ok=True)
         state = {
-            'retry_count': self.retry_count,
-            'skipped_features': list(self.skipped_features),
-            'retry_history': self.retry_history,
+            "retry_count": self.retry_count,
+            "skipped_features": list(self.skipped_features),
+            "retry_history": self.retry_history,
         }
-        with open(self.state_file, 'w') as f:
+        with open(self.state_file, "w") as f:
             json.dump(state, f, indent=2)
 
     def should_retry(self, feature_id: str) -> bool:
@@ -83,17 +82,19 @@ class RetryManager:
         self.retry_count[feature_id] = self.retry_count.get(feature_id, 0) + 1
 
         # Log to history
-        self.retry_history.append({
-            'feature_id': feature_id,
-            'attempt': self.retry_count[feature_id],
-            'error': error,
-        })
+        self.retry_history.append(
+            {
+                "feature_id": feature_id,
+                "attempt": self.retry_count[feature_id],
+                "error": error,
+            }
+        )
 
         # Check if we should skip this feature
         if self.retry_count[feature_id] >= self.max_retries:
             self.skipped_features.add(feature_id)
             print(f"\n⚠️  Feature {feature_id} failed {self.max_retries} times - SKIPPING")
-            print(f"   Will continue with remaining features\n")
+            print("   Will continue with remaining features\n")
 
         self._save_state()
 
@@ -124,7 +125,7 @@ class RetryManager:
         """
         return feature_id in self.skipped_features
 
-    def get_next_feature(self, features: List[Dict]) -> Optional[Dict]:
+    def get_next_feature(self, features: list[dict]) -> dict | None:
         """
         Get next feature to work on (smart selection).
 
@@ -139,10 +140,10 @@ class RetryManager:
             Next feature to work on, or None if all done/skipped
         """
         for feature in features:
-            feature_id = feature.get('id', feature.get('name', ''))
+            feature_id = feature.get("id", feature.get("name", ""))
 
             # Skip completed features
-            if feature.get('passes', False):
+            if feature.get("passes", False):
                 continue
 
             # Skip features that failed after retries
@@ -165,7 +166,7 @@ class RetryManager:
         """
         return self.retry_count.get(feature_id, 0)
 
-    def get_stats(self) -> Dict[str, any]:
+    def get_stats(self) -> dict[str, any]:
         """
         Get retry manager statistics.
 
@@ -174,12 +175,12 @@ class RetryManager:
         """
         total_retries = sum(self.retry_count.values())
         return {
-            'features_being_retried': len(self.retry_count),
-            'features_skipped': len(self.skipped_features),
-            'total_retry_attempts': total_retries,
-            'max_retries': self.max_retries,
-            'retry_count': dict(self.retry_count),
-            'skipped_features': list(self.skipped_features),
+            "features_being_retried": len(self.retry_count),
+            "features_skipped": len(self.skipped_features),
+            "total_retry_attempts": total_retries,
+            "max_retries": self.max_retries,
+            "retry_count": dict(self.retry_count),
+            "skipped_features": list(self.skipped_features),
         }
 
     def reset(self):

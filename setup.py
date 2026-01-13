@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Setup configuration for claude-harness."""
 
-from setuptools import setup, find_packages
 from pathlib import Path
+
+from setuptools import find_packages, setup
 
 # Read VERSION file
 version_file = Path(__file__).parent / "VERSION"

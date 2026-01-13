@@ -15,14 +15,14 @@ Philosophy:
 - Keep it simple and lightweight
 """
 
-from pathlib import Path
 from dataclasses import dataclass
-from typing import Optional
+from pathlib import Path
 
 
 @dataclass
 class E2EVerificationResult:
     """Result of E2E verification."""
+
     passed: bool
     reason: str
     screenshot_count: int
@@ -44,7 +44,7 @@ class E2EVerifier:
         self.project_dir = project_dir
         self.verification_dir = project_dir / ".claude" / "verification"
 
-    def verify(self, work_item: Optional[dict]) -> E2EVerificationResult:
+    def verify(self, work_item: dict | None) -> E2EVerificationResult:
         """
         Verify E2E testing was performed AND passed for this work item.
 
@@ -62,9 +62,7 @@ class E2EVerifier:
 
         if not work_item:
             return E2EVerificationResult(
-                passed=True,
-                reason="No work item - skipping E2E verification",
-                screenshot_count=0
+                passed=True, reason="No work item - skipping E2E verification", screenshot_count=0
             )
 
         # Only check user-facing features
@@ -72,7 +70,7 @@ class E2EVerifier:
             return E2EVerificationResult(
                 passed=True,
                 reason="Backend/infrastructure feature - E2E not required",
-                screenshot_count=0
+                screenshot_count=0,
             )
 
         # Check verification directory exists
@@ -80,19 +78,21 @@ class E2EVerifier:
             return E2EVerificationResult(
                 passed=False,
                 reason="No .claude/verification directory found - E2E testing not performed",
-                screenshot_count=0
+                screenshot_count=0,
             )
 
         # Check screenshots exist
-        screenshots = list(self.verification_dir.glob("*.png")) + \
-                     list(self.verification_dir.glob("*.jpg")) + \
-                     list(self.verification_dir.glob("*.jpeg"))
+        screenshots = (
+            list(self.verification_dir.glob("*.png"))
+            + list(self.verification_dir.glob("*.jpg"))
+            + list(self.verification_dir.glob("*.jpeg"))
+        )
 
         if not screenshots:
             return E2EVerificationResult(
                 passed=False,
                 reason="No screenshots found in .claude/verification/ - E2E testing not performed",
-                screenshot_count=0
+                screenshot_count=0,
             )
 
         # NEW: Check test_results.json exists and shows passing
@@ -101,11 +101,12 @@ class E2EVerifier:
             return E2EVerificationResult(
                 passed=False,
                 reason="No test_results.json found - E2E test results not documented",
-                screenshot_count=len(screenshots)
+                screenshot_count=len(screenshots),
             )
 
         # Verify test results show all steps passed
         import json
+
         try:
             with open(test_results_file) as f:
                 test_results = json.load(f)
@@ -124,7 +125,7 @@ class E2EVerifier:
                 return E2EVerificationResult(
                     passed=False,
                     reason=f"E2E tests FAILED - Agent must fix and re-test: {failed_msg}",
-                    screenshot_count=len(screenshots)
+                    screenshot_count=len(screenshots),
                 )
 
             # Success: Screenshots exist AND all E2E tests passed
@@ -139,32 +140,32 @@ class E2EVerifier:
                 return E2EVerificationResult(
                     passed=False,
                     reason=f"Console errors detected: {console_errors}",
-                    screenshot_count=len(screenshots)
+                    screenshot_count=len(screenshots),
                 )
             if visual_issues:
                 return E2EVerificationResult(
                     passed=False,
                     reason=f"Visual issues detected: {visual_issues}",
-                    screenshot_count=len(screenshots)
+                    screenshot_count=len(screenshots),
                 )
 
             return E2EVerificationResult(
                 passed=True,
                 reason=f"E2E testing verified - {details}, all tests passed",
-                screenshot_count=len(screenshots)
+                screenshot_count=len(screenshots),
             )
 
         except json.JSONDecodeError:
             return E2EVerificationResult(
                 passed=False,
                 reason="test_results.json is invalid JSON - fix formatting",
-                screenshot_count=len(screenshots)
+                screenshot_count=len(screenshots),
             )
         except Exception as e:
             return E2EVerificationResult(
                 passed=False,
                 reason=f"Error reading test_results.json: {e}",
-                screenshot_count=len(screenshots)
+                screenshot_count=len(screenshots),
             )
 
     def _is_user_facing(self, work_item: dict) -> bool:
@@ -184,38 +185,65 @@ class E2EVerifier:
         """
         import re
 
-        description = work_item.get('description', '').lower()
-        steps = work_item.get('steps', [])
-        category = work_item.get('category', '')
+        description = work_item.get("description", "").lower()
+        steps = work_item.get("steps", [])
+        category = work_item.get("category", "")
 
         # Helper function for word boundary matching
         def contains_word(text: str, word: str) -> bool:
             """Check if word exists in text with word boundaries."""
-            pattern = r'\b' + re.escape(word) + r'\b'
+            pattern = r"\b" + re.escape(word) + r"\b"
             return bool(re.search(pattern, text))
 
         # Keywords indicating BACKEND (skip E2E)
         backend_keywords = [
-            'api endpoint', 'endpoint', 'database', 'migration', 'schema',
-            'model', 'orm', 'query', 'calculation', 'algorithm',
-            'service', 'processor', 'loader', 'scanner',
-            'cache', 'redis', 'storage', 'validator',
-            'authentication token', 'session storage', 'background',
-            'cron', 'task', 'job', 'worker'
+            "api endpoint",
+            "endpoint",
+            "database",
+            "migration",
+            "schema",
+            "model",
+            "orm",
+            "query",
+            "calculation",
+            "algorithm",
+            "service",
+            "processor",
+            "loader",
+            "scanner",
+            "cache",
+            "redis",
+            "storage",
+            "validator",
+            "authentication token",
+            "session storage",
+            "background",
+            "cron",
+            "task",
+            "job",
+            "worker",
         ]
 
         # Check if this is clearly backend
         for keyword in backend_keywords:
             if keyword in description:  # Multi-word phrases use simple 'in'
                 # It's backend - only needs E2E if steps mention UI
-                steps_text = ' '.join(steps).lower()
+                steps_text = " ".join(steps).lower()
                 # Use word boundary matching for UI keywords to avoid false positives
                 ui_check_keywords = [
-                    'click', 'button', 'page', 'form', 'navigate',
-                    'display', 'user sees', 'user clicks', 'open', 'view'
+                    "click",
+                    "button",
+                    "page",
+                    "form",
+                    "navigate",
+                    "display",
+                    "user sees",
+                    "user clicks",
+                    "open",
+                    "view",
                 ]
                 has_ui_steps = any(
-                    contains_word(steps_text, ui_kw) if ' ' not in ui_kw else ui_kw in steps_text
+                    contains_word(steps_text, ui_kw) if " " not in ui_kw else ui_kw in steps_text
                     for ui_kw in ui_check_keywords
                 )
                 if not has_ui_steps:
@@ -225,14 +253,33 @@ class E2EVerifier:
         # Keywords indicating FRONTEND (needs E2E)
         # Use word boundaries to avoid false positives (e.g., "form" matching "format")
         ui_keywords_single = [
-            'click', 'button', 'page', 'form', 'display', 'navigate',
-            'ui', 'screen', 'menu', 'modal', 'dialog', 'input', 'select',
-            'dropdown', 'view', 'show', 'hide', 'toggle', 'render', 'layout',
-            'component', 'widget', 'panel', 'sidebar', 'dashboard'
+            "click",
+            "button",
+            "page",
+            "form",
+            "display",
+            "navigate",
+            "ui",
+            "screen",
+            "menu",
+            "modal",
+            "dialog",
+            "input",
+            "select",
+            "dropdown",
+            "view",
+            "show",
+            "hide",
+            "toggle",
+            "render",
+            "layout",
+            "component",
+            "widget",
+            "panel",
+            "sidebar",
+            "dashboard",
         ]
-        ui_keywords_phrases = [
-            'user can', 'user sees', 'interface'
-        ]
+        ui_keywords_phrases = ["user can", "user sees", "interface"]
 
         # Check description for UI keywords
         for keyword in ui_keywords_single:
@@ -244,7 +291,7 @@ class E2EVerifier:
 
         # Check steps for UI keywords
         if steps:
-            steps_text = ' '.join(steps).lower()
+            steps_text = " ".join(steps).lower()
             for keyword in ui_keywords_single:
                 if contains_word(steps_text, keyword):
                     return True
@@ -253,7 +300,7 @@ class E2EVerifier:
                     return True
 
         # Check category
-        if category in ['ui', 'ux', 'style', 'frontend']:
+        if category in ["ui", "ux", "style", "frontend"]:
             return True
 
         # Default: Backend features don't need E2E

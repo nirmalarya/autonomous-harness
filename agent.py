@@ -12,18 +12,16 @@ v3.1.0 enhancements:
 
 import asyncio
 from pathlib import Path
-from typing import Optional
 
 from claude_code_sdk import ClaudeSDKClient
 
 from client import create_client
-from progress import print_session_header, print_progress_summary
-from prompts import get_initializer_prompt, get_coding_prompt, copy_spec_to_project
-from output_formatter import format_tool_output
-from loop_detector import LoopDetector
-from retry_manager import RetryManager
 from error_handler import ErrorHandler
-
+from loop_detector import LoopDetector
+from output_formatter import format_tool_output
+from progress import print_progress_summary, print_session_header
+from prompts import copy_spec_to_project, get_coding_prompt, get_initializer_prompt
+from retry_manager import RetryManager
 
 # Configuration
 AUTO_CONTINUE_DELAY_SECONDS = 3
@@ -33,8 +31,8 @@ async def run_agent_session(
     client: ClaudeSDKClient,
     message: str,
     project_dir: Path,
-    loop_detector: Optional[LoopDetector] = None,
-    error_handler: Optional[ErrorHandler] = None,
+    loop_detector: LoopDetector | None = None,
+    error_handler: ErrorHandler | None = None,
 ) -> tuple[str, str]:
     """
     Run a single agent session using Claude Agent SDK.
@@ -87,16 +85,16 @@ async def run_agent_session(
                         # Track tool use for loop detection
                         if loop_detector:
                             # Determine tool type
-                            if tool_name in ['read_file', 'cat', 'head', 'tail']:
-                                file_path = tool_input.get('file_path', tool_input.get('path', ''))
-                                loop_detector.track_tool('read', file_path)
+                            if tool_name in ["read_file", "cat", "head", "tail"]:
+                                file_path = tool_input.get("file_path", tool_input.get("path", ""))
+                                loop_detector.track_tool("read", file_path)
                             else:
                                 loop_detector.track_tool(tool_name)
 
                         try:
                             formatted = format_tool_output(tool_name, tool_input)
                             print(formatted, flush=True)
-                        except Exception as e:
+                        except Exception:
                             # Fallback to simple output if formatter fails
                             print(f"\n[Tool: {tool_name}]", flush=True)
                             input_str = str(tool_input)
@@ -138,9 +136,9 @@ async def run_agent_session(
 async def run_autonomous_agent(
     project_dir: Path,
     model: str,
-    max_iterations: Optional[int] = None,
+    max_iterations: int | None = None,
     mode: str = "greenfield",
-    spec_file: Optional[str] = None,
+    spec_file: str | None = None,
     session_timeout_minutes: int = 120,
     stall_timeout_minutes: int = 10,
     max_retries: int = 3,
@@ -179,10 +177,10 @@ async def run_autonomous_agent(
         print("Max iterations: Unlimited (will run until completion)")
 
     # Show reliability features
-    print(f"\n📊 Reliability Features:")
+    print("\n📊 Reliability Features:")
     print(f"   Session timeout: {session_timeout_minutes} min")
     print(f"   Stall timeout: {stall_timeout_minutes} min")
-    print(f"   No-response timeout: 15 min")
+    print("   No-response timeout: 15 min")
     print(f"   Max retries per feature: {max_retries}")
     print()
 
@@ -193,8 +191,7 @@ async def run_autonomous_agent(
     retry_manager = RetryManager(project_dir, max_retries=max_retries)
     error_handler = ErrorHandler(project_dir)
     loop_detector = LoopDetector(
-        session_timeout_minutes=session_timeout_minutes,
-        stall_timeout_minutes=stall_timeout_minutes
+        session_timeout_minutes=session_timeout_minutes, stall_timeout_minutes=stall_timeout_minutes
     )
 
     print("✅ Reliability components initialized\n")
@@ -244,21 +241,24 @@ async def run_autonomous_agent(
             print(f"\nReached max iterations ({max_iterations})")
             print("To continue, run the script again without --max-iterations")
             break
-        
+
         # Check if project is 100% complete (CRITICAL!)
         # BUT: Skip this check on iteration 1 for enhancement/bugfix mode
         #      (let initializer add new features first!)
         spec_feature_list = spec_dir / "feature_list.json"
-        
-        if iteration > 1 or mode == "greenfield":  # Only check after first session, or always in greenfield
+
+        if (
+            iteration > 1 or mode == "greenfield"
+        ):  # Only check after first session, or always in greenfield
             if spec_feature_list.exists():
                 import json
+
                 try:
                     with open(spec_feature_list) as f:
                         features = json.load(f)
                     total = len(features)
-                    passing = sum(1 for f in features if f.get('passes', False))
-                    
+                    passing = sum(1 for f in features if f.get("passes", False))
+
                     if passing >= total and total > 0:
                         print("\n" + "=" * 70)
                         print(f"🎉 PROJECT 100% COMPLETE ({passing}/{total} features passing)!")
@@ -269,7 +269,7 @@ async def run_autonomous_agent(
                         print("\nTo add more features, create a new enhancement spec.")
                         print("=" * 70)
                         return  # Exit the function, stopping the loop
-                except (json.JSONDecodeError, IOError):
+                except (OSError, json.JSONDecodeError):
                     pass  # Continue if we can't read the file
 
         # Print session header
@@ -291,9 +291,11 @@ async def run_autonomous_agent(
         # Run session with async context manager
         async with client:
             status, response = await run_agent_session(
-                client, prompt, project_dir,
+                client,
+                prompt,
+                project_dir,
                 loop_detector=loop_detector,
-                error_handler=error_handler
+                error_handler=error_handler,
             )
 
         # Handle status
@@ -328,16 +330,16 @@ async def run_autonomous_agent(
 
     # Print retry/error statistics
     retry_stats = retry_manager.get_stats()
-    if retry_stats['features_skipped'] > 0 or retry_stats['features_being_retried'] > 0:
+    if retry_stats["features_skipped"] > 0 or retry_stats["features_being_retried"] > 0:
         print("\n" + "=" * 70)
         print("  RETRY STATISTICS")
         print("=" * 70)
         print(f"\nFeatures being retried: {retry_stats['features_being_retried']}")
         print(f"Features skipped (max retries): {retry_stats['features_skipped']}")
         print(f"Total retry attempts: {retry_stats['total_retry_attempts']}")
-        if retry_stats['skipped_features']:
-            print(f"\nSkipped features:")
-            for feature_id in retry_stats['skipped_features']:
+        if retry_stats["skipped_features"]:
+            print("\nSkipped features:")
+            for feature_id in retry_stats["skipped_features"]:
                 print(f"   - {feature_id}")
         print("=" * 70)
 

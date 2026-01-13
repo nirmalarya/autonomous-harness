@@ -59,7 +59,7 @@ def test_plugin_install_commands():
         # Test TypeScript and Python commands
         commands = lsp_manager.get_plugin_install_commands(["typescript", "python"])
 
-        print(f"\n✓ Generated commands:")
+        print("\n✓ Generated commands:")
         for cmd in commands:
             print(f"  {cmd}")
 
@@ -109,18 +109,18 @@ def test_full_setup():
         lsp_manager = LSPPluginManager(project_dir)
         setup_result = lsp_manager.setup_lsp()
 
-        print(f"\n✓ Setup complete:")
+        print("\n✓ Setup complete:")
         print(f"  Languages: {setup_result['languages']}")
         print(f"  Marketplace: {setup_result['marketplace']}")
         print(f"  Requires: {setup_result['requires_version']}")
-        print(f"\n  Install commands:")
-        for cmd in setup_result['install_commands']:
+        print("\n  Install commands:")
+        for cmd in setup_result["install_commands"]:
             print(f"    {cmd}")
 
         # Verify TypeScript was detected
-        assert "typescript" in setup_result['languages']
-        assert setup_result['marketplace'] == "claude-plugins-official"
-        assert len(setup_result['install_commands']) > 0
+        assert "typescript" in setup_result["languages"]
+        assert setup_result["marketplace"] == "claude-plugins-official"
+        assert len(setup_result["install_commands"]) > 0
 
 
 def test_official_plugins_catalog():
@@ -140,13 +140,13 @@ def test_official_plugins_catalog():
         "csharp-lsp",
         "php-lsp",
         "swift-lsp",
-        "lua-lsp"
+        "lua-lsp",
     ]
 
-    print(f"\n✓ Official plugins catalog:")
+    print("\n✓ Official plugins catalog:")
     for lang_id, config in lsp_manager.OFFICIAL_LSP_PLUGINS.items():
-        plugin_name = config['plugin']
-        languages = ', '.join(config['languages'])
+        plugin_name = config["plugin"]
+        languages = ", ".join(config["languages"])
         print(f"  {lang_id:12} → {plugin_name:20} ({languages})")
         assert plugin_name in expected_plugins
 
@@ -171,4 +171,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n✗ Test failed: {e}")
         import traceback
+
         traceback.print_exc()

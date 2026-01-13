@@ -12,14 +12,13 @@ from pathlib import Path
 from claude_code_sdk import ClaudeCodeOptions, ClaudeSDKClient
 from claude_code_sdk.types import HookMatcher
 
+from lsp_plugins import LSPPluginManager
 from security import bash_security_hook
 from setup_mcp import MCPServerSetup
 from skills_manager import SkillsManager
-from lsp_plugins import LSPPluginManager
-from validators.secrets_hook import secrets_scan_hook
-from validators.e2e_hook import e2e_validation_hook
 from validators.browser_cleanup_hook import browser_cleanup_hook
-
+from validators.e2e_hook import e2e_validation_hook
+from validators.secrets_hook import secrets_scan_hook
 
 # Built-in tools
 BUILTIN_TOOLS = [
@@ -122,66 +121,70 @@ def create_client(project_dir: Path, model: str, mode: str = "greenfield") -> Cl
     print("   - Secrets scanning enabled (blocks git commits with secrets)")
     print("   - E2E validation enabled (requires tests for user-facing features)")
     print(f"   - Skills loaded: {', '.join([s['name'] for s in skills]) if skills else 'none'}")
-    print(f"   - LSP detected: {', '.join(lsp_setup['languages']) if lsp_setup['languages'] else 'none'}")
+    print(
+        f"   - LSP detected: {', '.join(lsp_setup['languages']) if lsp_setup['languages'] else 'none'}"
+    )
     print(f"   - LSP marketplace: {lsp_setup['marketplace']}")
 
     # Print LSP auto-installation results
-    if lsp_setup['languages']:
+    if lsp_setup["languages"]:
         # Show language server installation results
-        if 'auto_install_server_results' in lsp_setup:
-            server_results = lsp_setup['auto_install_server_results']
+        if "auto_install_server_results" in lsp_setup:
+            server_results = lsp_setup["auto_install_server_results"]
 
-            if server_results['installed']:
-                print(f"\n✅ Auto-installed language servers:")
-                for item in server_results['installed']:
-                    config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item['language'], {})
-                    langs = ', '.join(config.get('languages', [item['language']]))
+            if server_results["installed"]:
+                print("\n✅ Auto-installed language servers:")
+                for item in server_results["installed"]:
+                    config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item["language"], {})
+                    langs = ", ".join(config.get("languages", [item["language"]]))
                     print(f"   - {langs}: {item['server']}")
 
-            if server_results['failed']:
-                print(f"\n❌ Failed to install language servers:")
-                for item in server_results['failed']:
-                    config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item['language'], {})
-                    langs = ', '.join(config.get('languages', [item['language']]))
-                    error = item['error'][:100]  # Truncate long errors
+            if server_results["failed"]:
+                print("\n❌ Failed to install language servers:")
+                for item in server_results["failed"]:
+                    config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item["language"], {})
+                    langs = ", ".join(config.get("languages", [item["language"]]))
+                    error = item["error"][:100]  # Truncate long errors
                     print(f"   - {langs}: {error}")
 
         # Show plugin installation results
-        if 'auto_install_results' in lsp_setup:
-            results = lsp_setup['auto_install_results']
+        if "auto_install_results" in lsp_setup:
+            results = lsp_setup["auto_install_results"]
 
-            if results['installed']:
-                print(f"\n✅ Auto-installed LSP plugins:")
-                for item in results['installed']:
+            if results["installed"]:
+                print("\n✅ Auto-installed LSP plugins:")
+                for item in results["installed"]:
                     print(f"   - {item['plugin']}")
 
-            if results['already_installed']:
-                print(f"\n✓ Already installed:")
-                for item in results['already_installed']:
+            if results["already_installed"]:
+                print("\n✓ Already installed:")
+                for item in results["already_installed"]:
                     print(f"   - {item['plugin']}")
 
-            if results['skipped_no_server']:
-                print(f"\nℹ️  LSP plugins skipped (optional - language server not installed):")
-                for item in results['skipped_no_server']:
-                    config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item['language'], {})
-                    langs = ', '.join(config.get('languages', [item['language']]))
+            if results["skipped_no_server"]:
+                print("\nℹ️  LSP plugins skipped (optional - language server not installed):")
+                for item in results["skipped_no_server"]:
+                    config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item["language"], {})
+                    langs = ", ".join(config.get("languages", [item["language"]]))
                     print(f"   - {langs}")
-                print(f"   To enable LSP code intelligence (optional), install language servers:")
-                for item in results['skipped_no_server']:
-                    config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item['language'], {})
-                    langs = ', '.join(config.get('languages', [item['language']]))
+                print("   To enable LSP code intelligence (optional), install language servers:")
+                for item in results["skipped_no_server"]:
+                    config = lsp_manager.OFFICIAL_LSP_PLUGINS.get(item["language"], {})
+                    langs = ", ".join(config.get("languages", [item["language"]]))
                     print(f"     • {langs}: {item['install_server_cmd']}")
-                print(f"   Note: The harness works perfectly fine without LSP plugins.")
+                print("   Note: The harness works perfectly fine without LSP plugins.")
 
-            if results['failed']:
-                print(f"\n❌ Failed to install LSP plugins:")
-                for item in results['failed']:
+            if results["failed"]:
+                print("\n❌ Failed to install LSP plugins:")
+                for item in results["failed"]:
                     print(f"   - {item['plugin']}: {item['error']}")
 
     print()
 
     # Build system prompt with skills information
-    system_prompt = "You are an expert full-stack developer building a production-quality web application."
+    system_prompt = (
+        "You are an expert full-stack developer building a production-quality web application."
+    )
 
     # Add skills as reference documentation in system prompt
     if skills:
@@ -203,18 +206,27 @@ def create_client(project_dir: Path, model: str, mode: str = "greenfield") -> Cl
             mcp_servers=mcp_servers,
             hooks={
                 "PreToolUse": [
-                    HookMatcher(matcher="Bash", hooks=[
-                        bash_security_hook,      # Command allowlist
-                        secrets_scan_hook,       # Secrets detection
-                    ]),
+                    HookMatcher(
+                        matcher="Bash",
+                        hooks=[
+                            bash_security_hook,  # Command allowlist
+                            secrets_scan_hook,  # Secrets detection
+                        ],
+                    ),
                 ],
                 "PostToolUse": [
-                    HookMatcher(matcher="Bash", hooks=[
-                        e2e_validation_hook,     # E2E test verification
-                    ]),
-                    HookMatcher(matcher="mcp__puppeteer__*", hooks=[
-                        browser_cleanup_hook,    # Auto-cleanup browsers
-                    ]),
+                    HookMatcher(
+                        matcher="Bash",
+                        hooks=[
+                            e2e_validation_hook,  # E2E test verification
+                        ],
+                    ),
+                    HookMatcher(
+                        matcher="mcp__puppeteer__*",
+                        hooks=[
+                            browser_cleanup_hook,  # Auto-cleanup browsers
+                        ],
+                    ),
                 ],
             },
             max_turns=1000,

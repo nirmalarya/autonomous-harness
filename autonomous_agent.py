@@ -19,7 +19,6 @@ from pathlib import Path
 
 from agent import run_autonomous_agent
 
-
 # Configuration
 DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
 
@@ -123,6 +122,7 @@ def main() -> None:
     if args.version:
         try:
             from importlib.metadata import version
+
             pkg_version = version("claude-harness")
         except Exception:
             pkg_version = "3.4.0"  # Fallback version
@@ -141,7 +141,7 @@ def main() -> None:
     # Validate spec file for enhancement/bugfix modes
     if args.mode in ["enhancement", "bugfix"] and not args.spec:
         print(f"Error: --spec is required for {args.mode} mode")
-        print(f"\nExample: --spec specs/autograph_bugfix_spec.txt")
+        print("\nExample: --spec specs/autograph_bugfix_spec.txt")
         return
 
     # Validate spec file for greenfield mode too

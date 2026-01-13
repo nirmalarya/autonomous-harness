@@ -33,7 +33,7 @@ def test_skills_discovery():
     # Check that our 4 skills exist
     expected_skills = ["puppeteer-testing", "code-quality", "harness-patterns", "project-patterns"]
 
-    print(f"\n✓ Checking for expected skills:")
+    print("\n✓ Checking for expected skills:")
     for skill in expected_skills:
         if skill in discovered:
             print(f"  ✓ {skill} found")
@@ -96,4 +96,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n✗ Test failed: {e}")
         import traceback
+
         traceback.print_exc()

@@ -12,13 +12,17 @@ Triple Timeout Protection:
 
 import time
 from collections import defaultdict
-from typing import Dict, Tuple
 
 
 class LoopDetector:
     """Detect when agent is stuck in a loop or hanging."""
 
-    def __init__(self, max_repeated_reads: int = 3, session_timeout_minutes: int = 120, stall_timeout_minutes: int = 10):
+    def __init__(
+        self,
+        max_repeated_reads: int = 3,
+        session_timeout_minutes: int = 120,
+        stall_timeout_minutes: int = 10,
+    ):
         """
         Initialize loop detector with timeout thresholds.
 
@@ -50,7 +54,7 @@ class LoopDetector:
         if tool_type == "read" and path:
             self.file_reads[path] += 1
 
-    def check(self) -> Tuple[bool, str]:
+    def check(self) -> tuple[bool, str]:
         """
         Check if agent is stuck in a loop or hanging.
 
@@ -61,20 +65,23 @@ class LoopDetector:
         # Check 1: Session timeout (overall) - 120 minutes default
         elapsed = time.time() - self.session_start
         if elapsed > self.session_timeout:
-            return True, f"Session timeout ({elapsed/60:.0f} minutes)"
+            return True, f"Session timeout ({elapsed / 60:.0f} minutes)"
 
         # Check 2: No initial response timeout (API never responded)
         # If no tool activity after 15 minutes from start, API likely stuck
         # This is critical - prevents waiting 120 min when API never responds
         if self.last_progress is None and elapsed > 900:  # 15 minutes
-            return True, f"No initial response from API after {elapsed/60:.0f} minutes"
+            return True, f"No initial response from API after {elapsed / 60:.0f} minutes"
 
         # Check 3: Stall timeout (no tool activity) - only after first tool
         # Prevents hanging when API stops responding mid-session
         if self.last_progress is not None:
             time_since_progress = time.time() - self.last_progress
             if time_since_progress > self.stall_timeout:
-                return True, f"No tool activity for {time_since_progress/60:.0f} minutes (stalled)"
+                return (
+                    True,
+                    f"No tool activity for {time_since_progress / 60:.0f} minutes (stalled)",
+                )
 
         # Check 4: Repeated file reads - agent stuck reading same files
         for path, count in self.file_reads.items():
@@ -98,7 +105,7 @@ class LoopDetector:
         self.tool_count = 0
         self.last_progress = None  # Don't start stall timer until first tool call
 
-    def get_stats(self) -> Dict[str, any]:
+    def get_stats(self) -> dict[str, any]:
         """
         Get current loop detector statistics.
 
@@ -113,6 +120,8 @@ class LoopDetector:
         return {
             "session_elapsed_minutes": elapsed / 60,
             "tool_count": self.tool_count,
-            "time_since_last_tool_minutes": time_since_progress / 60 if time_since_progress else None,
+            "time_since_last_tool_minutes": time_since_progress / 60
+            if time_since_progress
+            else None,
             "repeated_reads": dict(self.file_reads),
         }

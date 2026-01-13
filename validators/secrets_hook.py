@@ -5,6 +5,7 @@ PreToolUse hook that blocks git commits if secrets are detected.
 """
 
 from pathlib import Path
+
 from .secrets_scanner import SecretsScanner
 
 
@@ -63,7 +64,7 @@ Actions to take:
 4. Try the commit again after fixing
 
 Do NOT bypass this check. Security is critical.
-"""
+""",
         }
 
     return {}  # No secrets found, allow the operation

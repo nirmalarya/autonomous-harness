@@ -6,9 +6,7 @@ Dynamically configures MCP servers based on mode.
 Includes LSP integration via Cclsp for code intelligence.
 """
 
-import json
 import os
-from pathlib import Path
 
 
 class MCPServerSetup:
@@ -56,17 +54,12 @@ class MCPServerSetup:
                 "ref": {
                     "command": "npx",
                     "args": ["-y", "@ref-tools/ref-tools-mcp"],
-                    "env": {"REF_TOOLS_API_KEY": ref_api_key}
+                    "env": {"REF_TOOLS_API_KEY": ref_api_key},
                 }
             }
         else:
             # Free fallback
-            return {
-                "context7": {
-                    "command": "npx",
-                    "args": ["-y", "@upstash/context7-mcp"]
-                }
-            }
+            return {"context7": {"command": "npx", "args": ["-y", "@upstash/context7-mcp"]}}
 
     def _setup_browser_mcp(self) -> dict:
         """
@@ -78,7 +71,7 @@ class MCPServerSetup:
         return {
             "puppeteer": {
                 "command": "npx",
-                "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+                "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
             }
         }
 
@@ -101,10 +94,7 @@ class MCPServerSetup:
             "azure-devops": {
                 "command": "npx",
                 "args": ["-y", "@microsoft/azure-devops-mcp-server"],
-                "env": {
-                    "AZURE_DEVOPS_ORG": ado_org,
-                    "AZURE_DEVOPS_PROJECT": ado_project
-                }
+                "env": {"AZURE_DEVOPS_ORG": ado_org, "AZURE_DEVOPS_PROJECT": ado_project},
             }
         }
 
@@ -138,9 +128,7 @@ class MCPServerSetup:
             "linear": {
                 "type": "http",  # HTTP transport (not NPX)
                 "url": "https://mcp.linear.app/mcp",
-                "headers": {
-                    "Authorization": f"Bearer {linear_api_key}"
-                }
+                "headers": {"Authorization": f"Bearer {linear_api_key}"},
             }
         }
 

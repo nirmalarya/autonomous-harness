@@ -5,11 +5,10 @@ Prompt Loading Utilities
 Functions for loading prompt templates from the prompts directory.
 """
 
-import os
 import shutil
 from pathlib import Path
-from setup_mcp import MCPServerSetup
 
+from setup_mcp import MCPServerSetup
 
 # PROMPTS_DIR is now the package directory itself
 PROMPTS_DIR = Path(__file__).parent
@@ -106,7 +105,9 @@ def get_coding_prompt(mode: str = "greenfield") -> str:
         return load_prompt("coding_prompt", mode)
 
 
-def copy_spec_to_project(project_dir: Path, spec_file: str = None, mode: str = "greenfield") -> None:
+def copy_spec_to_project(
+    project_dir: Path, spec_file: str = None, mode: str = "greenfield"
+) -> None:
     """Copy the spec file and helper tools into the project directory."""
     # Create spec/ directory in project
     spec_dir = project_dir / "spec"
@@ -128,12 +129,12 @@ def copy_spec_to_project(project_dir: Path, spec_file: str = None, mode: str = "
         # Check if default spec exists
         if not spec_source.exists():
             raise FileNotFoundError(
-                f"\nError: No spec file provided and default spec not found.\n\n"
-                f"Usage: claude-harness --spec <path-to-spec-file>\n\n"
-                f"Example:\n"
-                f"  claude-harness --spec /path/to/app_spec.txt --project-dir ./my_project\n\n"
-                f"For greenfield mode, you need an app specification file.\n"
-                f"See the claude-harness documentation for spec file format."
+                "\nError: No spec file provided and default spec not found.\n\n"
+                "Usage: claude-harness --spec <path-to-spec-file>\n\n"
+                "Example:\n"
+                "  claude-harness --spec /path/to/app_spec.txt --project-dir ./my_project\n\n"
+                "For greenfield mode, you need an app specification file.\n"
+                "See the claude-harness documentation for spec file format."
             )
 
     spec_dest = spec_dir / spec_name

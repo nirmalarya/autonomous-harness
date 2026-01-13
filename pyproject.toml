@@ -77,6 +77,8 @@ select = [
 ignore = [
     "E501",  # line too long (handled by formatter)
     "B008",  # function calls in argument defaults
+    "E722",  # bare except (existing patterns in codebase)
+    "W293",  # blank line contains whitespace
 ]
 
 [tool.ruff.format]

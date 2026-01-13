@@ -32,17 +32,17 @@ def test_client_creation_with_skills():
     test_project.mkdir(parents=True, exist_ok=True)
 
     print(f"\n✓ Creating client for: {test_project}")
-    print(f"  Mode: greenfield")
+    print("  Mode: greenfield")
 
     try:
         # Create client (this should load skills)
         client = create_client(test_project, model="claude-sonnet-4", mode="greenfield")
 
-        print(f"\n✓ Client created successfully!")
+        print("\n✓ Client created successfully!")
         print(f"  Client type: {type(client)}")
 
         # Check if skills are in the options
-        if hasattr(client, '_options') and hasattr(client._options, 'skills'):
+        if hasattr(client, "_options") and hasattr(client._options, "skills"):
             skills = client._options.skills
             print(f"\n✓ Skills loaded: {len(skills)}")
             for skill_path in skills:
@@ -56,6 +56,7 @@ def test_client_creation_with_skills():
     except Exception as e:
         print(f"\n✗ Error creating client: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

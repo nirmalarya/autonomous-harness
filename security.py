@@ -9,7 +9,6 @@ Uses an allowlist approach - only explicitly permitted commands can run.
 import os
 import shlex
 
-
 # Allowed commands for development tasks
 # Minimal set needed for the autonomous coding demo
 ALLOWED_COMMANDS = {
@@ -20,7 +19,7 @@ ALLOWED_COMMANDS = {
     "tail",
     "wc",
     "grep",
-    "find",   # Find files
+    "find",  # Find files
     # File operations (agent uses SDK tools for most file ops, but cp/mkdir needed occasionally)
     "cp",
     "mv",
@@ -31,10 +30,10 @@ ALLOWED_COMMANDS = {
     "pwd",
     "cd",
     # Shell builtins (needed for conditionals)
-    "test",   # test command (if test -f file)
-    "[",      # Alternative syntax for test (if [ -f file ])
-    "echo",   # Output
-    "true",   # Boolean true
+    "test",  # test command (if test -f file)
+    "[",  # Alternative syntax for test (if [ -f file ])
+    "echo",  # Output
+    "true",  # Boolean true
     "false",  # Boolean false
     # Text processing
     "sed",
@@ -43,11 +42,11 @@ ALLOWED_COMMANDS = {
     "sort",
     "uniq",
     "tr",
-    "jq",     # JSON parsing
+    "jq",  # JSON parsing
     # Arithmetic
-    "expr",   # Expression evaluation
-    "bc",     # Calculator
-    "let",    # Shell arithmetic
+    "expr",  # Expression evaluation
+    "bc",  # Calculator
+    "let",  # Shell arithmetic
     # Node.js development
     "npm",
     "node",
@@ -61,12 +60,12 @@ ALLOWED_COMMANDS = {
     "docker",
     "docker-compose",
     # Database
-    "psql",      # PostgreSQL client
-    "pg_dump",   # PostgreSQL backup
+    "psql",  # PostgreSQL client
+    "pg_dump",  # PostgreSQL backup
     # Network/HTTP
-    "curl",      # HTTP requests
-    "wget",      # Downloads
-    "nc",        # Netcat for port checking
+    "curl",  # HTTP requests
+    "wget",  # Downloads
+    "nc",  # Netcat for port checking
     # Version control
     "git",
     # Process management
@@ -77,18 +76,18 @@ ALLOWED_COMMANDS = {
     "kill",
     "killall",  # Kill by process name
     # Browser automation
-    "open",     # macOS: open browser
-    "xdg-open", # Linux: open browser
+    "open",  # macOS: open browser
+    "xdg-open",  # Linux: open browser
     "google-chrome",
-    "Google",   # For "Google Chrome" command
-    "Chrome",   # For "Google Chrome" command  
+    "Google",  # For "Google Chrome" command
+    "Chrome",  # For "Google Chrome" command
     "chrome",
     "chromium",
     "firefox",
     # Script execution
     "init.sh",  # Init scripts; validated separately
-    "bash",      # Run bash scripts
-    "sh",        # Run shell scripts
+    "bash",  # Run bash scripts
+    "sh",  # Run shell scripts
     # System info
     "uname",
     "whoami",
@@ -202,7 +201,12 @@ def extract_commands(command_string: str) -> list[str]:
                 continue
 
             # Skip simple variable assignments (VAR=value) but NOT command substitution (VAR=$(cmd))
-            if "=" in token and not token.startswith("=") and "=$(" not in token and not token.startswith("`"):
+            if (
+                "=" in token
+                and not token.startswith("=")
+                and "=$(" not in token
+                and not token.startswith("`")
+            ):
                 continue
 
             # Check for command substitution even when not expecting a command
@@ -259,8 +263,8 @@ def validate_pkill_command(command_string: str) -> tuple[bool, str]:
         "chromium",
         "firefox",
         "Google Chrome",  # For browser automation
-        "curl",           # For killing hanging HTTP requests during testing
-        "wget",           # For killing hanging downloads
+        "curl",  # For killing hanging HTTP requests during testing
+        "wget",  # For killing hanging downloads
     }
 
     try:

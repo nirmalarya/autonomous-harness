@@ -8,25 +8,24 @@ Verifies that all new modules work correctly:
 - ErrorHandler (comprehensive error logging)
 """
 
-import sys
-import time
-from pathlib import Path
-import tempfile
 import shutil
+import sys
+import tempfile
+from pathlib import Path
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from error_handler import ErrorHandler
 from loop_detector import LoopDetector
 from retry_manager import RetryManager
-from error_handler import ErrorHandler
 
 
 def test_loop_detector():
     """Test loop detector functionality."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST: Loop Detector")
-    print("="*70)
+    print("=" * 70)
 
     # Test 1: Initial state
     detector = LoopDetector(session_timeout_minutes=2, stall_timeout_minutes=1)
@@ -62,7 +61,7 @@ def test_loop_detector():
     detector.track_tool("write")
     detector.track_tool("read", "test.py")
     stats = detector.get_stats()
-    assert stats['tool_count'] == 2
+    assert stats["tool_count"] == 2
     print(f"✅ Test 5: Stats tracking - PASS (tool_count={stats['tool_count']})")
 
     print("\n✅ All LoopDetector tests passed!\n")
@@ -70,9 +69,9 @@ def test_loop_detector():
 
 def test_retry_manager():
     """Test retry manager functionality."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST: Retry Manager")
-    print("="*70)
+    print("=" * 70)
 
     # Create temp directory
     temp_dir = Path(tempfile.mkdtemp())
@@ -98,7 +97,7 @@ def test_retry_manager():
         # Test 4: Feature selection
         features = [
             {"id": "feature-1", "passes": False},  # Skipped (max retries)
-            {"id": "feature-2", "passes": True},   # Completed
+            {"id": "feature-2", "passes": True},  # Completed
             {"id": "feature-3", "passes": False},  # Next to work on
         ]
         next_feature = manager.get_next_feature(features)
@@ -107,8 +106,8 @@ def test_retry_manager():
 
         # Test 5: Stats
         stats = manager.get_stats()
-        assert stats['features_skipped'] == 1
-        assert stats['features_being_retried'] == 1  # feature-1 (3 retries)
+        assert stats["features_skipped"] == 1
+        assert stats["features_being_retried"] == 1  # feature-1 (3 retries)
         print(f"✅ Test 5: Stats tracking - PASS (skipped={stats['features_skipped']})")
 
         # Test 6: State persistence
@@ -124,9 +123,9 @@ def test_retry_manager():
 
 def test_error_handler():
     """Test error handler functionality."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST: Error Handler")
-    print("="*70)
+    print("=" * 70)
 
     # Create temp directory
     temp_dir = Path(tempfile.mkdtemp())
@@ -134,7 +133,7 @@ def test_error_handler():
         # Test 1: Initial state
         handler = ErrorHandler(temp_dir)
         summary = handler.get_error_summary()
-        assert summary['total_errors'] == 0
+        assert summary["total_errors"] == 0
         print("✅ Test 1: Initial state - PASS")
 
         # Test 2: Record error
@@ -144,13 +143,13 @@ def test_error_handler():
             handler.record_error("test_context", e, feature_id="feature-1", fatal=False)
 
         summary = handler.get_error_summary()
-        assert summary['total_errors'] == 1
+        assert summary["total_errors"] == 1
         print("✅ Test 2: Record error - PASS")
 
         # Test 3: Record warning
         handler.record_warning("test_warning", "This is a warning", feature_id="feature-2")
         summary = handler.get_error_summary()
-        assert summary['warnings'] == 1
+        assert summary["warnings"] == 1
         print("✅ Test 3: Record warning - PASS")
 
         # Test 4: Session errors only
@@ -180,9 +179,9 @@ def test_error_handler():
 
 def main():
     """Run all tests."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("  AUTONOMOUS-HARNESS v3.1.0 FEATURE TESTS")
-    print("="*70)
+    print("=" * 70)
     print("\nTesting newly integrated reliability features...")
 
     try:
@@ -190,15 +189,15 @@ def main():
         test_retry_manager()
         test_error_handler()
 
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("  ALL TESTS PASSED! ✅")
-        print("="*70)
+        print("=" * 70)
         print("\nv3.1.0 reliability features are working correctly!")
         print("\nNext steps:")
         print("1. Test with real project: python autonomous_agent.py --project-dir ./test")
         print("2. Verify timeout protection works")
         print("3. Verify retry logic kicks in on failures")
-        print("="*70 + "\n")
+        print("=" * 70 + "\n")
 
     except AssertionError as e:
         print(f"\n❌ TEST FAILED: {e}\n")

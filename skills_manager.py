@@ -19,10 +19,9 @@ Architecture:
 - Auto-matched by Claude based on description
 """
 
-import os
 import re
 from pathlib import Path
-from typing import Dict, List, Optional
+
 import yaml
 
 
@@ -56,13 +55,14 @@ class SkillsManager:
         # Try to import harness_data package to get skills location
         try:
             import harness_data
+
             harness_data_path = Path(harness_data.__file__).parent
             self.harness_skills_dir = harness_data_path / ".claude" / "skills"
         except (ImportError, AttributeError):
             # Fallback for development (running from source)
             self.harness_skills_dir = Path(__file__).parent / "harness_data" / ".claude" / "skills"
 
-    def get_mode_specific_skills(self) -> List[str]:
+    def get_mode_specific_skills(self) -> list[str]:
         """
         Get recommended skills for this mode.
 
@@ -71,36 +71,36 @@ class SkillsManager:
         """
         mode_skills = {
             "greenfield": [
-                "puppeteer-testing",      # E2E testing with Puppeteer MCP
-                "code-quality",           # Production code standards
-                "project-patterns",       # Framework conventions (Next.js, FastAPI, etc.)
-                "harness-patterns",       # claude-harness workflow patterns
-                "lsp-navigation",         # Code intelligence with LSP
+                "puppeteer-testing",  # E2E testing with Puppeteer MCP
+                "code-quality",  # Production code standards
+                "project-patterns",  # Framework conventions (Next.js, FastAPI, etc.)
+                "harness-patterns",  # claude-harness workflow patterns
+                "lsp-navigation",  # Code intelligence with LSP
             ],
             "enhancement": [
-                "code-quality",           # Maintain existing standards
-                "project-patterns",       # Follow existing conventions
-                "harness-patterns",       # Workflow patterns
-                "lsp-navigation",         # Code navigation with LSP
+                "code-quality",  # Maintain existing standards
+                "project-patterns",  # Follow existing conventions
+                "harness-patterns",  # Workflow patterns
+                "lsp-navigation",  # Code navigation with LSP
             ],
             "bugfix": [
-                "code-quality",           # Maintain code quality
-                "project-patterns",       # Follow existing patterns
-                "harness-patterns",       # Workflow patterns
-                "lsp-navigation",         # Code navigation with LSP
+                "code-quality",  # Maintain code quality
+                "project-patterns",  # Follow existing patterns
+                "harness-patterns",  # Workflow patterns
+                "lsp-navigation",  # Code navigation with LSP
             ],
             "backlog": [
-                "code-quality",           # Production standards
-                "project-patterns",       # Codebase conventions
-                "harness-patterns",       # Workflow patterns
-                "lsp-navigation",         # Code navigation with LSP
-                "linear-workflow",        # Linear issue tracking and workflow
-            ]
+                "code-quality",  # Production standards
+                "project-patterns",  # Codebase conventions
+                "harness-patterns",  # Workflow patterns
+                "lsp-navigation",  # Code navigation with LSP
+                "linear-workflow",  # Linear issue tracking and workflow
+            ],
         }
 
         return mode_skills.get(self.mode, [])
 
-    def discover_skills(self) -> Dict[str, Path]:
+    def discover_skills(self) -> dict[str, Path]:
         """
         Discover all available skills from all locations.
 
@@ -131,7 +131,7 @@ class SkillsManager:
 
         return discovered
 
-    def load_skills_for_mode(self) -> List[Dict]:
+    def load_skills_for_mode(self) -> list[dict]:
         """
         Load skills recommended for current mode.
 
@@ -149,16 +149,18 @@ class SkillsManager:
                 skill_info = self._load_skill_metadata(skill_path)
 
                 if skill_info:
-                    skills_config.append({
-                        "name": skill_name,
-                        "path": str(skill_path),
-                        "description": skill_info.get("description", ""),
-                        "allowed_tools": skill_info.get("allowed-tools", []),
-                    })
+                    skills_config.append(
+                        {
+                            "name": skill_name,
+                            "path": str(skill_path),
+                            "description": skill_info.get("description", ""),
+                            "allowed_tools": skill_info.get("allowed-tools", []),
+                        }
+                    )
 
         return skills_config
 
-    def _load_skill_metadata(self, skill_path: Path) -> Optional[Dict]:
+    def _load_skill_metadata(self, skill_path: Path) -> dict | None:
         """
         Load skill metadata from SKILL.md frontmatter.
 
@@ -177,7 +179,7 @@ class SkillsManager:
             content = skill_md.read_text()
 
             # Extract YAML frontmatter
-            match = re.match(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
+            match = re.match(r"^---\s*\n(.*?)\n---\s*\n", content, re.DOTALL)
             if not match:
                 print(f"Warning: {skill_md} has no YAML frontmatter")
                 return None
@@ -195,7 +197,7 @@ class SkillsManager:
             print(f"Error loading {skill_md}: {e}")
             return None
 
-    def copy_skills_to_project(self, tech_stack: List[str]) -> None:
+    def copy_skills_to_project(self, tech_stack: list[str]) -> None:
         """
         Copy relevant skills to project .claude/skills/ directory.
 

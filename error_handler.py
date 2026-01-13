@@ -15,7 +15,6 @@ import json
 import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List, Dict
 
 
 class ErrorHandler:
@@ -30,7 +29,7 @@ class ErrorHandler:
         """
         self.project_dir = project_dir
         self.error_log_file = project_dir / ".claude" / "errors.json"
-        self.errors: List[Dict] = []
+        self.errors: list[dict] = []
         self.session_start = datetime.now()
 
         # Load existing errors
@@ -40,23 +39,19 @@ class ErrorHandler:
         """Load existing error log from disk."""
         if self.error_log_file.exists():
             try:
-                with open(self.error_log_file, 'r') as f:
+                with open(self.error_log_file) as f:
                     self.errors = json.load(f)
-            except (json.JSONDecodeError, IOError):
+            except (OSError, json.JSONDecodeError):
                 self.errors = []
 
     def _save_errors(self):
         """Save error log to disk."""
         self.error_log_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.error_log_file, 'w') as f:
+        with open(self.error_log_file, "w") as f:
             json.dump(self.errors, f, indent=2)
 
     def record_error(
-        self,
-        context: str,
-        error: Exception,
-        feature_id: Optional[str] = None,
-        fatal: bool = False
+        self, context: str, error: Exception, feature_id: str | None = None, fatal: bool = False
     ):
         """
         Record an error with full context.
@@ -85,11 +80,7 @@ class ErrorHandler:
         self._print_user_error(context, error, feature_id, fatal)
 
     def _print_user_error(
-        self,
-        context: str,
-        error: Exception,
-        feature_id: Optional[str],
-        fatal: bool
+        self, context: str, error: Exception, feature_id: str | None, fatal: bool
     ):
         """
         Print user-friendly error message.
@@ -100,12 +91,12 @@ class ErrorHandler:
             feature_id: Feature ID if applicable
             fatal: Whether error is fatal
         """
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         if fatal:
             print("❌ FATAL ERROR")
         else:
             print("⚠️  ERROR (recoverable)")
-        print("="*70)
+        print("=" * 70)
 
         print(f"\nContext: {context}")
         print(f"Error: {str(error)}")
@@ -119,14 +110,9 @@ class ErrorHandler:
         else:
             print("\n♻️  Will attempt to recover and continue")
 
-        print("="*70 + "\n")
+        print("=" * 70 + "\n")
 
-    def record_warning(
-        self,
-        context: str,
-        message: str,
-        feature_id: Optional[str] = None
-    ):
+    def record_warning(self, context: str, message: str, feature_id: str | None = None):
         """
         Record a warning (non-error issue).
 
@@ -153,7 +139,7 @@ class ErrorHandler:
             print(f"   Feature: {feature_id}")
         print()
 
-    def get_session_errors(self) -> List[Dict]:
+    def get_session_errors(self) -> list[dict]:
         """
         Get errors from current session only.
 
@@ -164,12 +150,12 @@ class ErrorHandler:
         session_start_str = self.session_start.isoformat()
 
         for error in self.errors:
-            if error.get('session_start') == session_start_str:
+            if error.get("session_start") == session_start_str:
                 session_errors.append(error)
 
         return session_errors
 
-    def get_error_summary(self) -> Dict[str, any]:
+    def get_error_summary(self) -> dict[str, any]:
         """
         Get error summary for current session.
 
@@ -178,50 +164,50 @@ class ErrorHandler:
         """
         session_errors = self.get_session_errors()
 
-        fatal_count = sum(1 for e in session_errors if e.get('fatal', False))
-        warning_count = sum(1 for e in session_errors if e.get('type') == 'warning')
+        fatal_count = sum(1 for e in session_errors if e.get("fatal", False))
+        warning_count = sum(1 for e in session_errors if e.get("type") == "warning")
         error_count = len(session_errors) - warning_count
 
         error_by_context = {}
         for error in session_errors:
-            context = error.get('context', 'unknown')
+            context = error.get("context", "unknown")
             error_by_context[context] = error_by_context.get(context, 0) + 1
 
         return {
-            'total_errors': error_count,
-            'fatal_errors': fatal_count,
-            'warnings': warning_count,
-            'errors_by_context': error_by_context,
-            'session_start': self.session_start.isoformat(),
+            "total_errors": error_count,
+            "fatal_errors": fatal_count,
+            "warnings": warning_count,
+            "errors_by_context": error_by_context,
+            "session_start": self.session_start.isoformat(),
         }
 
     def print_session_summary(self):
         """Print summary of errors from current session."""
         summary = self.get_error_summary()
 
-        if summary['total_errors'] == 0 and summary['warnings'] == 0:
+        if summary["total_errors"] == 0 and summary["warnings"] == 0:
             print("\n✅ No errors or warnings this session\n")
             return
 
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("SESSION ERROR SUMMARY")
-        print("="*70)
+        print("=" * 70)
 
-        if summary['total_errors'] > 0:
+        if summary["total_errors"] > 0:
             print(f"\n❌ Errors: {summary['total_errors']}")
-            if summary['fatal_errors'] > 0:
+            if summary["fatal_errors"] > 0:
                 print(f"   Fatal: {summary['fatal_errors']}")
 
-        if summary['warnings'] > 0:
+        if summary["warnings"] > 0:
             print(f"\n⚠️  Warnings: {summary['warnings']}")
 
-        if summary['errors_by_context']:
+        if summary["errors_by_context"]:
             print("\nBy context:")
-            for context, count in summary['errors_by_context'].items():
+            for context, count in summary["errors_by_context"].items():
                 print(f"   {context}: {count}")
 
         print(f"\nFull error log: {self.error_log_file}")
-        print("="*70 + "\n")
+        print("=" * 70 + "\n")
 
     def has_fatal_errors(self) -> bool:
         """
@@ -231,13 +217,10 @@ class ErrorHandler:
             True if fatal errors exist
         """
         session_errors = self.get_session_errors()
-        return any(e.get('fatal', False) for e in session_errors)
+        return any(e.get("fatal", False) for e in session_errors)
 
     def clear_session_errors(self):
         """Clear errors from current session (keep historical errors)."""
         session_start_str = self.session_start.isoformat()
-        self.errors = [
-            e for e in self.errors
-            if e.get('session_start') != session_start_str
-        ]
+        self.errors = [e for e in self.errors if e.get("session_start") != session_start_str]
         self._save_errors()

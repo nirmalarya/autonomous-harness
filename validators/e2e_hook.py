@@ -4,8 +4,9 @@ E2E testing validation hook for Claude Agent SDK.
 PostToolUse hook that validates E2E tests after git commit.
 """
 
-from pathlib import Path
 import json
+from pathlib import Path
+
 from .e2e_verifier import E2EVerifier
 
 
@@ -48,16 +49,41 @@ def is_user_facing(feature: dict) -> bool:
 
     # Keywords that indicate user-facing features
     user_facing_keywords = [
-        "page", "component", "form", "button", "ui", "interface",
-        "dashboard", "view", "modal", "dialog", "navigation",
-        "display", "show", "render", "input", "output",
-        "chart", "graph", "table", "list", "card"
+        "page",
+        "component",
+        "form",
+        "button",
+        "ui",
+        "interface",
+        "dashboard",
+        "view",
+        "modal",
+        "dialog",
+        "navigation",
+        "display",
+        "show",
+        "render",
+        "input",
+        "output",
+        "chart",
+        "graph",
+        "table",
+        "list",
+        "card",
     ]
 
     # Keywords that indicate backend-only features
     backend_keywords = [
-        "schema", "migration", "model", "database", "api endpoint",
-        "utility", "helper", "config", "setup", "init"
+        "schema",
+        "migration",
+        "model",
+        "database",
+        "api endpoint",
+        "utility",
+        "helper",
+        "config",
+        "setup",
+        "init",
     ]
 
     # Check if it's explicitly backend
@@ -155,7 +181,7 @@ You MUST create and run E2E tests using Puppeteer MCP tools before committing:
 5. Verify all tests passed before committing again
 
 Re-run E2E tests now and fix any failures.
-"""
+""",
         }
 
     # E2E tests passed!

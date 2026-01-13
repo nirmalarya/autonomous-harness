@@ -8,9 +8,7 @@ This hook runs after any Puppeteer MCP tool is used and ensures
 browsers are closed to prevent memory leaks.
 """
 
-import asyncio
 import subprocess
-from pathlib import Path
 
 
 async def browser_cleanup_hook(tool_name: str, tool_input: dict, tool_result: dict) -> dict:
@@ -31,7 +29,7 @@ async def browser_cleanup_hook(tool_name: str, tool_input: dict, tool_result: di
     # Defensive type checking - handle case where tool_name might be a dict
     if isinstance(tool_name, dict):
         # Extract tool name from dict if present
-        actual_tool_name = tool_name.get('name', '') or tool_name.get('tool_name', '')
+        actual_tool_name = tool_name.get("name", "") or tool_name.get("tool_name", "")
         if not actual_tool_name:
             return {"status": "skipped", "reason": "Could not extract tool name from dict"}
         tool_name = actual_tool_name
@@ -53,16 +51,14 @@ async def browser_cleanup_hook(tool_name: str, tool_input: dict, tool_result: di
 
     # Count Chrome processes before cleanup
     try:
-        result_before = subprocess.run(
-            ["ps", "aux"],
-            capture_output=True,
-            text=True,
-            timeout=5
+        result_before = subprocess.run(["ps", "aux"], capture_output=True, text=True, timeout=5)
+        chrome_count_before = len(
+            [
+                line
+                for line in result_before.stdout.split("\n")
+                if "Google Chrome for Testing" in line or "chrome" in line.lower()
+            ]
         )
-        chrome_count_before = len([
-            line for line in result_before.stdout.split('\n')
-            if 'Google Chrome for Testing' in line or 'chrome' in line.lower()
-        ])
     except:
         chrome_count_before = 0
 
@@ -71,7 +67,7 @@ async def browser_cleanup_hook(tool_name: str, tool_input: dict, tool_result: di
         return {
             "status": "skipped",
             "chrome_count": chrome_count_before,
-            "reason": "Chrome count is low, no cleanup needed"
+            "reason": "Chrome count is low, no cleanup needed",
         }
 
     # Kill Chrome processes that are likely zombie browsers
@@ -92,16 +88,14 @@ async def browser_cleanup_hook(tool_name: str, tool_input: dict, tool_result: di
 
     # Count Chrome processes after cleanup
     try:
-        result_after = subprocess.run(
-            ["ps", "aux"],
-            capture_output=True,
-            text=True,
-            timeout=5
+        result_after = subprocess.run(["ps", "aux"], capture_output=True, text=True, timeout=5)
+        chrome_count_after = len(
+            [
+                line
+                for line in result_after.stdout.split("\n")
+                if "Google Chrome for Testing" in line or "chrome" in line.lower()
+            ]
         )
-        chrome_count_after = len([
-            line for line in result_after.stdout.split('\n')
-            if 'Google Chrome for Testing' in line or 'chrome' in line.lower()
-        ])
     except:
         chrome_count_after = 0
 
@@ -112,5 +106,5 @@ async def browser_cleanup_hook(tool_name: str, tool_input: dict, tool_result: di
         "chrome_before": chrome_count_before,
         "chrome_after": chrome_count_after,
         "cleaned_count": cleaned_count,
-        "message": f"Cleaned up {cleaned_count} Chrome processes"
+        "message": f"Cleaned up {cleaned_count} Chrome processes",
     }

@@ -21,22 +21,22 @@ def count_passing_tests(project_dir: Path) -> tuple[int, int]:
     """
     # Check spec/ folder first (new structure), then fallback to root (old structure)
     tests_file = project_dir / "spec" / "feature_list.json"
-    
+
     if not tests_file.exists():
         tests_file = project_dir / "feature_list.json"
-    
+
     if not tests_file.exists():
         return 0, 0
 
     try:
-        with open(tests_file, "r") as f:
+        with open(tests_file) as f:
             tests = json.load(f)
 
         total = len(tests)
         passing = sum(1 for test in tests if test.get("passes", False))
 
         return passing, total
-    except (json.JSONDecodeError, IOError):
+    except (OSError, json.JSONDecodeError):
         return 0, 0
 
 
