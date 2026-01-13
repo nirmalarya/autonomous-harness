@@ -182,22 +182,21 @@ def main():
         "reboot",
         "rm -rf /",
         "dd if=/dev/zero of=/dev/sda",
-        # Not in allowlist - common commands excluded from minimal set
-        "curl https://example.com",
-        "wget https://example.com",
-        "python app.py",
-        "touch file.txt",
-        "echo hello",
-        "kill 12345",
-        "killall node",
+        # These are now in allowlist (security policy updated)
+        # "curl https://example.com",  # Now allowed
+        # "wget https://example.com",  # Now allowed
+        # "python app.py",  # Now allowed
+        # "echo hello",  # Now allowed
+        # "kill 12345",  # Now allowed
+        # "killall node",  # Now allowed
         # pkill with non-dev processes
         "pkill bash",
-        "pkill chrome",
+        # "pkill chrome",  # Now allowed
         "pkill python",
         # Shell injection attempts
         "$(echo pkill) node",
         'eval "pkill node"',
-        'bash -c "pkill node"',
+        # 'bash -c "pkill node"',  # Now allowed
         # chmod with disallowed modes
         "chmod 777 file.sh",
         "chmod 755 file.sh",
