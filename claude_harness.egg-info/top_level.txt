@@ -2,6 +2,7 @@ agent
 autonomous_agent
 client
 error_handler
+harness_data
 infra
 loop_detector
 lsp_plugins

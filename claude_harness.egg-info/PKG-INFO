@@ -1,11 +1,11 @@
 Metadata-Version: 2.4
 Name: claude-harness
-Version: 3.2.0
+Version: 3.3.0
 Summary: Production-ready autonomous coding harness using Claude Code SDK
 Home-page: https://github.com/nirmalarya/claude-harness
 Author: Nirmalarya
 Author-email: Nirmalarya <hello@nirmalarya.com>
-License: MIT
+License-Expression: MIT
 Project-URL: Homepage, https://github.com/nirmalarya/claude-harness
 Project-URL: Documentation, https://github.com/nirmalarya/claude-harness/blob/main/README.md
 Project-URL: Repository, https://github.com/nirmalarya/claude-harness
@@ -13,7 +13,6 @@ Project-URL: Issues, https://github.com/nirmalarya/claude-harness/issues
 Keywords: claude,autonomous,coding,agent,ai,sdk
 Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Developers
-Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
@@ -22,17 +21,44 @@ Classifier: Programming Language :: Python :: 3.13
 Classifier: Programming Language :: Python :: 3.14
 Requires-Python: >=3.10
 Description-Content-Type: text/markdown
+License-File: LICENSE
 Requires-Dist: claude-code-sdk>=0.0.25
 Requires-Dist: pyyaml>=6.0
 Dynamic: author
 Dynamic: home-page
+Dynamic: license-file
 Dynamic: requires-python
 
 # claude-harness
 
 Production-ready autonomous coding harness using Claude Code SDK. Build complete applications autonomously with a two-agent pattern (initializer + coding agents).
 
-**Proven Success:** Built [SHERPA v1.0](https://github.com/nirmalarya/sherpa) - 165 features, production-ready, A- grade quality.
+## Key Features
+
+🎯 **Autonomous Development**
+- Two-agent pattern (Initializer + Coding agents)
+- Auto-continues between sessions with fresh context windows
+- Progress persisted via feature_list.json and git commits
+
+🔒 **Production-Ready Quality**
+- **v3.2.2**: Mandatory E2E debugging - no workarounds allowed
+- **v3.2.1**: E2E test execution enforced with proof required
+- Triple timeout protection (15/10/120 min)
+- Retry + skip logic (3 attempts per feature)
+- Loop detection prevents infinite hangs
+
+🧠 **Code Intelligence (v3.2.0)**
+- Skills System with 5 built-in skills
+- LSP integration for code navigation
+- Auto-discovers patterns from existing code
+- Mode-specific domain knowledge (greenfield/enhancement/bugfix)
+
+🛡️ **Security First**
+- Bash command allowlist
+- Filesystem restrictions (project dir only)
+- Secrets scanning
+- Browser cleanup hooks
+- MCP auto-configuration (Context7, Puppeteer)
 
 ## Prerequisites
 
@@ -64,8 +90,15 @@ export CLAUDE_CODE_OAUTH_TOKEN='your-oauth-token-here'
 ## Installation
 
 ```bash
-# Install from source
-cd /path/to/claude-harness
+# Install from PyPI (recommended)
+pip install claude-harness
+
+# Or install from GitHub
+pip install git+https://github.com/nirmalarya/claude-harness.git
+
+# Or install from source (development)
+git clone https://github.com/nirmalarya/claude-harness.git
+cd claude-harness
 pip install -e .
 
 # Verify installation
@@ -86,22 +119,106 @@ claude-harness --project-dir ./my_project --max-iterations 3
 
 # Enhancement mode (existing projects)
 claude-harness --mode enhancement --project-dir ./existing-app --spec ./features.txt
+
+# Backlog mode with Linear (NEW in v3.3.0)
+export LINEAR_API_KEY='lin_api_...'
+claude-harness --mode backlog --project-dir ./my_project
 ```
 
 📖 **[Read the full User Guide →](USER_GUIDE.md)**
 
-## What's New in v3.1.0
+## Backlog Mode Integrations (NEW in v3.3.0)
 
-✅ **Production Reliability Features:**
-- **Triple Timeout Protection** - 15/10/120 min timeouts prevent infinite hangs
-- **Retry + Skip Logic** - Auto-retry failed features (3 attempts), skip after max failures
-- **Loop Detection** - Prevents infinite loops and repeated file reads
-- **Comprehensive Error Logging** - Structured error logs in `.claude/errors.json`
-- **E2E Validation Enforcement** - Commits blocked without E2E tests (CRITICAL BUG FIX)
-- **MCP Auto-Configuration** - Context7 and Puppeteer servers pre-configured
-- **Security Hooks** - Secrets scanning, bash allowlist, filesystem restrictions
+claude-harness now supports automated issue tracking with Linear or Azure DevOps in backlog mode. The agent fetches issues, implements features, and updates status automatically.
 
-📖 **[Full v3.1.0 changelog →](CHANGELOG_v3.1.0.md)**
+### Linear Integration
+
+**Setup:**
+```bash
+# 1. Get API key from https://linear.app/settings/api
+export LINEAR_API_KEY='lin_api_...'
+
+# 2. Create project marker file in your project
+cat > .linear_project.json <<EOF
+{
+  "team_id": "your_team_id",
+  "project_id": "your_project_id",
+  "project_name": "My Project"
+}
+EOF
+
+# 3. Run in backlog mode
+claude-harness --mode backlog --project-dir ./my_project
+```
+
+**Workflow:**
+1. Agent fetches issues from Linear project
+2. Picks next "Todo" issue
+3. Updates to "In Progress"
+4. Implements feature with E2E tests
+5. Updates to "Done"
+6. Adds implementation comment to issue
+7. Tracks progress via META issue
+
+**Features:**
+- 20 Linear tools for issue management
+- Auto-syncs status (Todo → In Progress → Done)
+- Implementation comments with file changes and test results
+- META issue tracking for session progress
+- State persistence in `.cursor/linear-backlog-state.json`
+
+**Finding Team/Project IDs:**
+```bash
+# Method 1: From Linear URL
+# https://linear.app/workspace/team/ENG/project/my-project
+#                                  ^^^         ^^^^^^^^^^
+#                                team_key    project_key
+
+# Method 2: Use Linear tools
+# Run: linear_list_teams() to get team_id
+# Run: linear_list_projects(team_id) to get project_id
+```
+
+### Azure DevOps Integration
+
+**Setup:**
+```bash
+# Set environment variables
+export ADO_ORG='your-organization'
+export ADO_PROJECT='your-project'
+
+# Run in backlog mode
+claude-harness --mode backlog --project-dir ./my_project
+```
+
+**Note:** Both integrations can be configured simultaneously. The agent will use whichever is available based on environment variables.
+
+## What's New in v3.2.2
+
+✅ **Critical Quality Fix - Mandatory E2E Debugging:**
+- **E2E Test Failures Now Require Debugging** - Agents can't skip to code verification when E2E tests fail
+- **Debugging Scripts Provided** - Step-by-step scripts for common issues (backend timeout, DB connection, zombie processes)
+- **Forbidden Workarounds** - Explicitly blocked shortcuts that bypass real testing
+- **Self-Healing** - Agent fixes infrastructure issues (restart backend, start DB, create test users)
+- **Quality Gate** - "If E2E failed: Debugged, fixed, re-ran until passing" is now MANDATORY
+
+✅ **Skills System (v3.2.0):**
+- **5 Built-in Skills** - puppeteer-testing, code-quality, project-patterns, harness-patterns, lsp-navigation
+- **Auto-Discovery** - Skills loaded from `.claude/skills/` and `~/.claude/skills/`
+- **Mode-Specific** - Different skills for greenfield, enhancement, and bugfix modes
+- **Progressive Disclosure** - SKILL.md + supporting files for rich domain knowledge
+
+✅ **LSP Integration (v3.2.0):**
+- **Code Intelligence** - goToDefinition, findReferences, hover, documentSymbol, etc.
+- **Navigate Codebases** - Find usages, jump to definitions, explore call hierarchies
+- **Context-Aware** - Understand existing patterns before making changes
+
+✅ **E2E Enforcement (v3.2.1):**
+- **Mandatory E2E Execution** - All user-facing features must pass E2E tests
+- **Proof Required** - Agent must show test output with exit code 0
+- **No More "Trust Me" Commits** - Code verification alone is insufficient
+
+📖 **Full changelogs:** [v3.2.2](CHANGELOG_v3.2.2.md) | [v3.2.1](CHANGELOG_v3.2.1.md) | [v3.2.0](CHANGELOG_v3.2.0.md) | [v3.1.0](CHANGELOG_v3.1.0.md)
 
 ## Important Timing Expectations
 
@@ -150,14 +267,34 @@ Commands not in the allowlist are blocked by the security hook.
 claude-harness/
 ├── autonomous_agent.py       # Main entry point
 ├── agent.py                  # Agent session logic
-├── client.py                 # Claude SDK client configuration
+├── client.py                 # Claude SDK client with skills integration
 ├── security.py               # Bash command allowlist and validation
+├── skills_manager.py         # Skills discovery and loading (v3.2.0)
+├── lsp_plugins.py            # LSP code intelligence plugins (v3.2.0)
 ├── progress.py               # Progress tracking utilities
-├── prompts.py                # Prompt loading utilities
+├── retry_manager.py          # Feature retry and skip logic
+├── loop_detector.py          # Infinite loop prevention
+├── error_handler.py          # Structured error logging
+├── setup_mcp.py              # MCP server auto-configuration
 ├── prompts/
 │   ├── app_spec.txt          # Application specification
 │   ├── initializer_prompt.md # First session prompt
-│   └── coding_prompt.md      # Continuation session prompt
+│   ├── coding_prompt.md      # Continuation session prompt (with v3.2.2 E2E debugging)
+│   └── [other prompts]       # Enhancement, bugfix, validation modes
+├── harness_data/             # Bundled package data (v3.2.0)
+│   └── .claude/skills/       # Built-in skills
+│       ├── puppeteer-testing/
+│       ├── code-quality/
+│       ├── project-patterns/
+│       ├── harness-patterns/
+│       └── lsp-navigation/
+├── validators/               # Quality enforcement hooks
+│   ├── e2e_hook.py           # E2E test enforcement (v3.2.1)
+│   ├── e2e_verifier.py       # E2E debugging enforcement (v3.2.2)
+│   ├── secrets_hook.py       # Secrets scanning
+│   └── browser_cleanup_hook.py
+├── infra/
+│   └── healer.py             # Infrastructure self-healing
 └── requirements.txt          # Python dependencies
 ```
 
@@ -234,6 +371,12 @@ The agent tried to run a command not in the allowlist. This is the security syst
 **"OAuth token not set"**
 Run `claude setup-token` to generate your token, then ensure `CLAUDE_CODE_OAUTH_TOKEN` is exported in your shell environment.
 
+## Attribution
+
+This project is built upon concepts from Anthropic's autonomous coding research:
+- **Quickstart Template:** [claude-quickstarts/autonomous-coding](https://github.com/anthropics/claude-quickstarts/tree/main/autonomous-coding)
+- **Engineering Blog:** [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+
 ## License
 
-Internal Anthropic use.
+MIT License - see [LICENSE](LICENSE) file for details.

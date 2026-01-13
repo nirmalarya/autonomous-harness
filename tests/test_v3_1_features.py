@@ -8,10 +8,14 @@ Verifies that all new modules work correctly:
 - ErrorHandler (comprehensive error logging)
 """
 
+import sys
 import time
 from pathlib import Path
 import tempfile
 import shutil
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from loop_detector import LoopDetector
 from retry_manager import RetryManager
