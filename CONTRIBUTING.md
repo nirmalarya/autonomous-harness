@@ -169,7 +169,7 @@ Fill out the PR template completely:
 
 - Target Python 3.10+ compatibility
 - Use modern Python features where appropriate
-- Test across multiple Python versions (3.10-3.14)
+- Test across multiple Python versions (3.10-3.13)
 
 ### Code Style
 

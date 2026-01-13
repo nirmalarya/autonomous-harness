@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Contributing Infrastructure**: Comprehensive contribution framework for open-source community
   - GitHub issue templates (bug report, feature request)
   - Pull request template with quality checklist
-  - CI workflow with test matrix (Python 3.10-3.14), linting (ruff), type checking (mypy), and build verification
+  - CI workflow with test matrix (Python 3.10-3.13), linting (ruff), type checking (mypy), and build verification
   - CONTRIBUTING.md with full contribution guidelines
   - docs/DEVELOPMENT.md with detailed setup instructions
   - CLAUDE.md guide for future Claude Code instances
