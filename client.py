@@ -67,11 +67,10 @@ def create_client(project_dir: Path, model: str, mode: str = "greenfield") -> Cl
         )
 
     # Determine which authentication method to use
-    auth_method = "OAuth token" if oauth_token else "API key"
+    # Note: The SDK automatically reads from environment variables
+    # We just validate that at least one is set
+    auth_method = "API key" if api_key else "OAuth token"
     print(f"Authentication: Using {auth_method}")
-
-    # API key takes precedence if both are set
-    client_api_key = api_key if api_key else oauth_token
 
     # Setup MCP servers dynamically based on mode
     mcp_setup = MCPServerSetup()
@@ -210,7 +209,7 @@ def create_client(project_dir: Path, model: str, mode: str = "greenfield") -> Cl
 
     return ClaudeSDKClient(
         options=ClaudeCodeOptions(
-            api_key=client_api_key,  # Support both ANTHROPIC_API_KEY and CLAUDE_CODE_OAUTH_TOKEN
+            # Note: SDK automatically reads ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN from env
             model=model,
             system_prompt=system_prompt,
             allowed_tools=[
