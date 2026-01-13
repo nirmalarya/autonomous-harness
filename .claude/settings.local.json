@@ -55,7 +55,9 @@
       "Bash(claude plugin:*)",
       "Bash(python tests/test_security.py:*)",
       "Bash(ruff check:*)",
-      "Bash(ruff format:*)"
+      "Bash(ruff format:*)",
+      "Bash(python -m pytest tests/ -v --tb=short)",
+      "Bash(mypy:*)"
     ]
   }
 }
