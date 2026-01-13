@@ -5,6 +5,17 @@ All notable changes to autonomous-harness will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.1] - 2026-01-13
+
+### Fixed
+- **Critical Bug**: Removed invalid `api_key` parameter from `ClaudeCodeOptions`
+  - The Claude Code SDK automatically reads authentication from environment variables
+  - No need to explicitly pass API key - SDK checks `ANTHROPIC_API_KEY` and `CLAUDE_CODE_OAUTH_TOKEN` automatically
+  - Fixed `TypeError: ClaudeCodeOptions.__init__() got an unexpected keyword argument 'api_key'`
+  - Both authentication methods now work correctly
+
+---
+
 ## [3.5.0] - 2026-01-13
 
 ### Added

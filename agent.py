@@ -161,7 +161,7 @@ async def run_autonomous_agent(
         version_file = Path(__file__).parent / "VERSION"
         version = version_file.read_text().strip()
     except Exception:
-        version = "3.5.0"  # Fallback version
+        version = "3.5.1"  # Fallback version
 
     print("\n" + "=" * 70)
     print(f"  AUTONOMOUS CODING AGENT v{version}")
