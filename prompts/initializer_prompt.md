@@ -5,7 +5,7 @@ Your job is to set up the foundation for all future coding agents.
 
 ### FIRST: Read the Project Specification
 
-Start by reading `app_spec.txt` in your working directory. This file contains
+Start by reading `spec/app_spec.txt` in your working directory. This file contains
 the complete specification for what you need to build. Read it carefully
 before proceeding.
 
@@ -13,11 +13,11 @@ before proceeding.
 
 **IMPORTANT: Use RELATIVE file paths!**
 - Your current working directory is the project directory
-- Write to `feature_list.json` (NOT `/Users/.../feature_list.json`)
+- Write to `spec/feature_list.json` (NOT `/Users/.../feature_list.json`)
 - Write to `init.sh` (NOT absolute paths)
 - All files should be relative paths from current directory
 
-Based on `app_spec.txt`, create a file called `feature_list.json` with ALL features
+Based on `spec/app_spec.txt`, create a file called `spec/feature_list.json` with ALL features
 detailed in the spec.
 
 **IMPORTANT:**
