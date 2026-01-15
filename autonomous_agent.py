@@ -125,7 +125,8 @@ def main() -> None:
 
             pkg_version = version("claude-harness")
         except Exception:
-            pkg_version = "3.5.1"  # Fallback version
+            from version import get_version
+            pkg_version = get_version()
         print(f"claude-harness v{pkg_version}")
         return
 

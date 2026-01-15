@@ -156,12 +156,13 @@ async def run_autonomous_agent(
         stall_timeout_minutes: No-activity timeout (default: 10 min)
         max_retries: Max retry attempts per feature (default: 3)
     """
-    # Read version from VERSION file
+    # Read version
     try:
         version_file = Path(__file__).parent / "VERSION"
         version = version_file.read_text().strip()
     except Exception:
-        version = "3.5.1"  # Fallback version
+        from version import __version__
+        version = __version__
 
     print("\n" + "=" * 70)
     print(f"  AUTONOMOUS CODING AGENT v{version}")

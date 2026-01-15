@@ -334,13 +334,16 @@ Change feature count: Edit `initializer_prompt.md`, modify "200 features" requir
 
 ## Release Process (Maintainers)
 
-1. Update `VERSION` file
-2. Update `pyproject.toml` version
-3. Update fallback `__version__` in `autonomous_agent.py` and `agent.py`
-4. Update `CHANGELOG.md` (move Unreleased → versioned section)
-5. Commit: `chore: bump version to X.Y.Z`
-6. Create GitHub release with tag `vX.Y.Z`
-7. PyPI publishes automatically via `.github/workflows/publish-to-pypi.yml`
+1. Update version in **ONE place only**: `version.py` (line 6: `__version__ = "X.Y.Z"`)
+2. Update `CHANGELOG.md` (move Unreleased → versioned section)
+3. Commit: `chore: bump version to X.Y.Z`
+4. Create GitHub release with tag `vX.Y.Z`
+5. PyPI publishes automatically via `.github/workflows/publish-to-pypi.yml`
+
+**Note**: Version is automatically synced from `version.py` to:
+- `VERSION` file (read by `pyproject.toml` via `setup.py`)
+- `autonomous_agent.py` (imports `get_version()`)
+- `agent.py` (imports `__version__`)
 
 ## Important Conventions
 
