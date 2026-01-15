@@ -3,7 +3,7 @@
 from pathlib import Path
 
 # Single source of truth for version
-__version__ = "3.6.2"
+__version__ = "3.6.3"
 
 
 def get_version() -> str:
