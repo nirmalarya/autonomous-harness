@@ -205,14 +205,34 @@ Features can fail. The retry manager (`retry_manager.py`) tracks:
 
 This prevents infinite retry loops on impossible tasks.
 
-### E2E Debugging Enforcement (v3.2.2+)
+### E2E Browser Automation (v3.6.0+)
+
+**Critical for fullstack apps**: User-facing features MUST be tested with browser automation (Puppeteer), not just API testing.
+
+**Philosophy (v3.6.0 change)**:
+- Backend APIs are **implementation details** of UI features
+- If users interact through a UI, test the UI (not just the API)
+- Only pure infrastructure (migrations, configs) skips E2E testing
 
 **Mandatory quality gate**: If E2E tests fail, agent MUST debug and fix, cannot skip to code verification.
 
 **Forbidden workarounds**:
-- Skipping E2E test execution
-- Marking features complete without proof
-- Trust-based verification without test output
+- Testing only backend APIs with curl/requests (insufficient for fullstack apps)
+- Skipping browser automation for user-facing features
+- Marking features complete without screenshots/test_results.json
+- Using JavaScript evaluation to bypass UI interaction
+
+**How it works**:
+1. Agent implements feature (backend + frontend)
+2. Tests through actual UI using Puppeteer MCP tools (navigate, click, fill, screenshot)
+3. Saves screenshots to `.claude/verification/`
+4. Creates `test_results.json` with step results
+5. E2E hook validates artifacts exist before allowing git commit
+
+**Determining if E2E needed** (`validators/e2e_verifier.py`):
+- Checks feature description/steps for UI keywords (page, button, form, interface, etc.)
+- Default: Assume user-facing (True) unless pure infrastructure
+- Pure infrastructure: database migrations, CI/CD scripts, config files
 
 See `validators/e2e_verifier.py` and `prompts/coding_prompt.md`.
 
@@ -341,6 +361,11 @@ Change feature count: Edit `initializer_prompt.md`, modify "200 features" requir
 **"Command blocked"**: Check `security.py` → add to `ALLOWED_COMMANDS` if legitimate
 
 **"Session appears stuck"**: Normal during initialization (writing 200 features). Watch for `[Tool: ...]` output.
+
+**"Frontend features marked passing but no UI implemented"** (Fixed in v3.6.0):
+- If using v3.5.1 or earlier: Upgrade to v3.6.0+ which enforces browser automation for fullstack apps
+- Mark affected features as `"passes": false` in feature_list.json
+- Restart harness - agent will now properly implement UI with Puppeteer testing
 
 **LSP not working**: Ensure Claude Code CLI v1.0.33+, check language server installed correctly
 

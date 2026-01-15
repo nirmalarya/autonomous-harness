@@ -170,18 +170,14 @@ class E2EVerifier:
 
     def _is_user_facing(self, work_item: dict) -> bool:
         """
-        Check if feature requires E2E testing.
+        Check if feature requires E2E testing with browser automation.
 
-        Backend features DON'T need E2E:
-        - API endpoints (unless testing via UI)
-        - Database models/migrations
-        - Data processing/calculations
-        - Internal services
+        Philosophy for fullstack applications:
+        - Backend APIs are implementation details of user-facing features
+        - If users interact with a feature through a UI, test the UI (not just API)
+        - Only pure infrastructure features skip E2E testing
 
-        Frontend features NEED E2E:
-        - UI components (buttons, forms, pages)
-        - User interactions (click, navigate, submit)
-        - Visual elements (display, render, layout)
+        This method now prioritizes UI testing for fullstack apps.
         """
         import re
 
@@ -195,63 +191,35 @@ class E2EVerifier:
             pattern = r"\b" + re.escape(word) + r"\b"
             return bool(re.search(pattern, text))
 
-        # Keywords indicating BACKEND (skip E2E)
-        backend_keywords = [
-            "api endpoint",
-            "endpoint",
-            "database",
-            "migration",
-            "schema",
-            "model",
-            "orm",
-            "query",
-            "calculation",
-            "algorithm",
-            "service",
-            "processor",
-            "loader",
-            "scanner",
-            "cache",
-            "redis",
-            "storage",
-            "validator",
-            "authentication token",
-            "session storage",
-            "background",
-            "cron",
-            "task",
-            "job",
-            "worker",
+        # Keywords indicating PURE INFRASTRUCTURE (truly no UI, skip E2E)
+        # These are features that have no user interaction at all
+        infrastructure_keywords = [
+            "database migration",
+            "database schema",
+            "schema migration",
+            "create database",
+            "migration script",
+            "environment variable",
+            "environment config",
+            "config file",
+            "configuration file",
+            "ci/cd pipeline",
+            "deployment script",
+            "build script",
+            "docker setup",
+            "infrastructure setup",
         ]
 
-        # Check if this is clearly backend
-        for keyword in backend_keywords:
-            if keyword in description:  # Multi-word phrases use simple 'in'
-                # It's backend - only needs E2E if steps mention UI
-                steps_text = " ".join(steps).lower()
-                # Use word boundary matching for UI keywords to avoid false positives
-                ui_check_keywords = [
-                    "click",
-                    "button",
-                    "page",
-                    "form",
-                    "navigate",
-                    "display",
-                    "user sees",
-                    "user clicks",
-                    "open",
-                    "view",
-                ]
-                has_ui_steps = any(
-                    contains_word(steps_text, ui_kw) if " " not in ui_kw else ui_kw in steps_text
-                    for ui_kw in ui_check_keywords
-                )
-                if not has_ui_steps:
-                    # Backend without UI interaction steps = no E2E needed
-                    return False
+        # Check if this is pure infrastructure (no user interaction)
+        for keyword in infrastructure_keywords:
+            if keyword in description:
+                return False  # Pure infrastructure, no E2E needed
 
-        # Keywords indicating FRONTEND (needs E2E)
-        # Use word boundaries to avoid false positives (e.g., "form" matching "format")
+        # Check if category explicitly marks it as infrastructure
+        if category in ["infrastructure", "deployment", "ci-cd", "build"]:
+            return False
+
+        # Keywords indicating USER-FACING features (needs browser E2E)
         ui_keywords_single = [
             "click",
             "button",
@@ -260,6 +228,7 @@ class E2EVerifier:
             "display",
             "navigate",
             "ui",
+            "interface",
             "screen",
             "menu",
             "modal",
@@ -278,34 +247,42 @@ class E2EVerifier:
             "panel",
             "sidebar",
             "dashboard",
+            "table",
+            "list",
+            "card",
+            "tab",
+            "upload",
+            "download",
         ]
-        ui_keywords_phrases = ["user can", "user sees", "interface"]
+        ui_keywords_phrases = ["user can", "user sees", "user clicks", "user interface"]
 
         # Check description for UI keywords
         for keyword in ui_keywords_single:
             if contains_word(description, keyword):
-                return True
+                return True  # Has UI keyword, needs E2E
         for phrase in ui_keywords_phrases:
             if phrase in description:
-                return True
+                return True  # Has UI phrase, needs E2E
 
         # Check steps for UI keywords
         if steps:
             steps_text = " ".join(steps).lower()
             for keyword in ui_keywords_single:
                 if contains_word(steps_text, keyword):
-                    return True
+                    return True  # Steps mention UI, needs E2E
             for phrase in ui_keywords_phrases:
                 if phrase in steps_text:
-                    return True
+                    return True  # Steps mention UI, needs E2E
 
         # Check category
-        if category in ["ui", "ux", "style", "frontend"]:
-            return True
+        if category in ["ui", "ux", "style", "frontend", "functional"]:
+            return True  # UI/frontend category, needs E2E
 
-        # Default: Backend features don't need E2E
-        # (Changed from v3.0.5: If unclear, assume backend since most features are backend)
-        return False
+        # CHANGED: Default to user-facing (True) for fullstack apps
+        # Reasoning: In fullstack apps, most features are user-facing
+        # If unclear, better to require E2E than skip it
+        # Only pure infrastructure (matched above) should skip E2E
+        return True
 
     def clear_screenshots(self):
         """

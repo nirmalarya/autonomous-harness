@@ -81,6 +81,65 @@ detailed in the spec.
 - DO NOT create placeholder features like "Feature X functionality"
 - DO NOT skip features because they're complex
 
+**CRITICAL: UI-Specific Steps for Fullstack Applications:**
+
+If app_spec.txt mentions ANY frontend technology (React, Next.js, Vue, Angular, HTML, UI, pages, components), you MUST:
+
+1. **Generate UI-focused feature descriptions:**
+   - Good: "User registration form with email validation"
+   - Bad: "User registration API endpoint"
+   - Good: "Product detail page showing price history chart"
+   - Bad: "Product detail endpoint"
+
+2. **Include explicit UI interaction steps:**
+   - Every user-facing feature MUST have steps like:
+     * "Navigate to [page] in browser"
+     * "Click [button]"
+     * "Fill [form field] with [value]"
+     * "Verify [UI element] appears"
+     * "Verify [data] displays correctly"
+     * "Take screenshot documenting functionality"
+
+3. **Example of proper UI feature:**
+```json
+{
+  "category": "functional",
+  "description": "User login form with email/password and remember me checkbox",
+  "steps": [
+    "Navigate to /login page in browser",
+    "Verify login form is visible",
+    "Fill email field with test@example.com",
+    "Fill password field with test password",
+    "Check 'remember me' checkbox",
+    "Click 'Sign In' button",
+    "Verify redirect to dashboard",
+    "Verify user avatar appears in navigation",
+    "Take screenshot of successful login"
+  ],
+  "passes": false
+}
+```
+
+4. **Bad example (DO NOT DO THIS):**
+```json
+{
+  "category": "functional",
+  "description": "User login API endpoint",
+  "steps": [
+    "Implement POST /api/auth/login endpoint",
+    "Test with curl command",
+    "Verify JWT token returned"
+  ],
+  "passes": false
+}
+```
+
+**Why this matters:**
+- Future coding agents will test through the UI using browser automation (Puppeteer)
+- API-only testing is insufficient for fullstack applications
+- Users interact with UI, not APIs directly
+- Features without UI steps will be tested incorrectly
+
 **VALIDATION BEFORE CONTINUING:**
 After creating feature_list.json, verify:
 1. Feature count is comprehensive and appropriate for project scope
@@ -90,6 +149,7 @@ After creating feature_list.json, verify:
 5. Every entry has "passes": false (boolean)
 6. No "id", "status", or "title" fields
 7. File is valid JSON (test with `python -m json.tool feature_list.json > /dev/null`)
+8. **For fullstack apps:** User-facing features have UI interaction steps (not just API steps)
 
 If validation fails, FIX IT before proceeding!
 

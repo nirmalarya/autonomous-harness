@@ -5,6 +5,46 @@ All notable changes to autonomous-harness will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.0] - 2026-01-14
+
+### Fixed
+- **CRITICAL: Frontend Features Now Properly Implemented**
+  - Fixed fundamental issue where fullstack apps had frontend features marked as passing without actual UI implementation
+  - Agent was testing only backend APIs with curl/requests instead of browser automation
+  - Root cause: Conflicting testing guidance in prompts created escape hatch for API-only testing
+
+### Changed
+- **Strengthened E2E Verification for Fullstack Apps**
+  - `e2e_verifier.py`: Removed backend keyword escape hatch that allowed skipping browser automation
+  - Changed default behavior: Features are now assumed user-facing unless explicitly marked as pure infrastructure
+  - Only pure infrastructure (database migrations, CI/CD scripts, config files) skip E2E testing
+  - Backend APIs with user-facing features now REQUIRE browser testing
+
+- **Updated Testing Guidance in coding_prompt.md**
+  - Removed conflicting "For APIs: Use curl" guidance that created escape hatch
+  - Added clear distinction between fullstack apps (require browser automation) and pure API services (rare)
+  - Explicit instruction: "Backend APIs are implementation details of UI features"
+  - New rule: If app_spec.txt mentions ANY frontend technology → Browser automation mandatory
+
+- **Enhanced Initializer Prompt for UI-First Feature Generation**
+  - Added section requiring explicit UI interaction steps for fullstack applications
+  - Provided good/bad examples of feature descriptions and test steps
+  - Features must include steps like "Navigate to page", "Click button", "Verify UI element"
+  - Prevents generation of API-only feature descriptions when UI is intended
+
+### Impact
+- **Breaking Change (Minor)**: Fullstack applications now strictly enforce browser automation for user-facing features
+- **API-only projects**: Unchanged - still work correctly when spec explicitly states no frontend
+- **Fullstack projects**: Will now properly implement and test UI features instead of just backend APIs
+
+### Migration Guide
+If you have an existing project that was affected by this issue:
+1. Features marked as "passing" but missing frontend implementation should be marked as `"passes": false`
+2. Regenerate feature_list.json with UI-specific steps using updated initializer prompt
+3. Restart harness - agent will now properly implement UI with browser automation testing
+
+---
+
 ## [3.5.1] - 2026-01-13
 
 ### Fixed

@@ -278,41 +278,62 @@ if not cursor.fetchone():
 
 **DO NOT mark passing if curl works but browser fails!**
 
-### STEP 10: END-TO-END TEST (MANDATORY - Generic Approach!)
+### STEP 10: END-TO-END TEST (MANDATORY - BROWSER AUTOMATION REQUIRED!)
 
-**Test complete user workflow appropriate for project type:**
+**CRITICAL RULE: For fullstack applications (backend + frontend), ALL user-facing features MUST be tested with browser automation.**
 
-**For Web Apps:** Use Puppeteer to test in browser
-**For APIs:** Use curl/httpie to test endpoints
-**For CLIs:** Execute commands and verify output
-**For Desktop:** Use appropriate automation
+**Understanding Backend vs Frontend Testing:**
 
-**Generic E2E Checklist (adapt to your project):**
+**Fullstack Apps (Most Projects):**
+- If your project has BOTH a backend API AND a frontend UI
+- Backend APIs are **implementation details** of UI features
+- Users interact with the UI, not directly with APIs
+- **You MUST test through the UI using Puppeteer**
+- API testing alone is INSUFFICIENT
+
+**Pure Backend APIs (Rare):**
+- Only if project specification explicitly states "API-only service with no frontend"
+- Only if users/clients consume the API directly via HTTP
+- Example: "Build a REST API for weather data" (no UI mentioned)
+- Then curl/httpie testing is acceptable
+
+**How to determine which you're building:**
+1. Check app_spec.txt for "frontend", "UI", "pages", "components", "React", "Next.js"
+2. If ANY frontend technology is mentioned → **Fullstack app → Use Puppeteer**
+3. If spec says "API service", "REST API", "backend microservice" with NO UI → API-only
+
+**For Fullstack Apps (Default Assumption):**
+
+**E2E Test Workflow:**
 1. Start from clean/logged-out state
-2. Perform complete user workflow (not just one API call!)
-3. Verify immediate feedback (success message, UI update)
-4. **Verify persistence** (reload page/restart app - data still there!)
-5. Verify no errors (console/logs)
-6. Test with real data (not mocks!)
+2. Use Puppeteer to navigate to the feature in browser
+3. Interact like a human (click buttons, fill forms, not API calls!)
+4. Verify immediate UI feedback (success message, UI update)
+5. **Verify persistence** (reload page - data still there!)
+6. Check console for zero errors
+7. Take screenshots documenting each step
 
-**Example for web app:**
+**Example for fullstack web app:**
 ```
-1. Navigate to feature page
-2. Authenticate if needed
-3. Perform action (create/update/delete)
-4. Verify success message
-5. Reload page or navigate away and back
-6. Verify data persists!
-7. Check console (zero errors)
+1. puppeteer_navigate to feature page
+2. puppeteer_screenshot "step-1-loaded.png"
+3. puppeteer_fill form fields
+4. puppeteer_click submit button
+5. puppeteer_screenshot "step-2-submitted.png"
+6. Verify success message appears
+7. Reload page / navigate away and back
+8. Verify data persists!
+9. Check console (zero errors)
 ```
 
 **DO NOT mark passing if:**
-- ❌ Only tested API in isolation (not end-to-end!)
-- ❌ Data doesn't persist after reload
+- ❌ Only tested backend API with curl/requests (backend testing alone is insufficient!)
+- ❌ Data doesn't persist after browser reload
 - ❌ Console has errors
-- ❌ Never tested in actual interface
+- ❌ Never tested in actual browser interface
+- ❌ Used JavaScript evaluation to bypass UI interaction
 
-**Only mark passing after COMPLETE USER WORKFLOW tested!**
+**Only mark passing after COMPLETE USER WORKFLOW tested in browser!**
 
 ### STEP 11: VERIFY WITH BROWSER AUTOMATION
 
