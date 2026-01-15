@@ -162,6 +162,7 @@ async def run_autonomous_agent(
         version = version_file.read_text().strip()
     except Exception:
         from version import __version__
+
         version = __version__
 
     print("\n" + "=" * 70)
