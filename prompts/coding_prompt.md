@@ -3,14 +3,33 @@
 You are continuing work on a long-running autonomous development task.
 This is a FRESH context window - you have no memory of previous sessions.
 
-## ITERATION PHILOSOPHY (v3.7.0 - Ralph Wiggum Integration)
+## ITERATION PHILOSOPHY (v4.0.0 - Ralph Wiggum Plugin)
 
-This harness follows the **"Iteration > Perfection"** principle:
+This harness uses the **Ralph Wiggum plugin** for iterative development following **"Iteration > Perfection"**:
+
+### Core Principles:
 
 1. **Don't aim for perfect on first try** - Implement, test, debug, refine iteratively
 2. **Failures are data** - Each failed E2E test tells you what to fix
 3. **Persistence wins** - Keep iterating until all quality gates pass
-4. **Explicit completion** - Output `<promise>TEXT</promise>` when task is genuinely complete
+4. **Self-referential feedback** - Read your own previous work in files/git history
+5. **Explicit completion** - Output `<promise>TEXT</promise>` when task is genuinely complete
+
+### Ralph Loops
+
+You have access to the **`/ralph-loop`** command for iterative tasks:
+
+**How it works:**
+- Ralph's **stop hook** intercepts your exit attempts
+- Same prompt fed back repeatedly until completion
+- You see modified files and git history from previous iterations
+- Learn from your own past attempts and refine approach
+- Output completion promise when genuinely done
+
+**Example:**
+```
+/ralph-loop "Task description. When done output <promise>DONE</promise>" --max-iterations 10 --completion-promise "DONE"
+```
 
 ### Completion Promises
 
@@ -23,7 +42,7 @@ Use these markers to signal task completion:
 
 **Critical Rule**: Only output completion promises when tasks are genuinely complete, not when giving up or taking shortcuts.
 
-**Enforcement**: The harness will BLOCK commits and feature marking until you output the required completion promise. This is enforced via validation hooks.
+**Enforcement**: The harness will BLOCK commits and feature marking until you output the required completion promise. This is enforced via validation hooks at the SDK level.
 
 ### STEP 1: GET YOUR BEARINGS (MANDATORY)
 
@@ -485,152 +504,59 @@ $ python3 test_feature_99_e2e.py
 
 **CRITICAL: You CANNOT skip to code verification if E2E test fails!**
 
-If the E2E test fails, enter the **iterative debugging loop** until it passes:
+If the E2E test fails, use the **Ralph Wiggum plugin** for iterative debugging:
 
-```bash
-#!/bin/bash
-# E2E Debugging Iteration Loop (Ralph Philosophy v3.7.0)
+```
+/ralph-loop "Debug E2E test for [FEATURE_NAME].
 
-iteration=1
-max_iterations=10
-e2e_test="test_feature_XXX_e2e.py"  # Replace with actual test file
+## Your Task:
+Iterate through diagnostics → fixes → re-test until E2E test passes.
 
-echo "🔄 Starting E2E Debugging Loop (max $max_iterations iterations)"
-echo ""
+## Diagnostic Checks (each iteration):
+1. Backend process status: ps aux | grep uvicorn
+2. Backend health: curl -f http://localhost:8100/health
+3. Database status: docker ps | grep postgres
+4. Backend logs: tail -20 backend/logs/app.log
+5. Zombie processes: ps aux | grep -E '(python.*main\.py|uvicorn)'
 
-while [ $iteration -le $max_iterations ]; do
-    echo "═══════════════════════════════════════════════"
-    echo "🔄 E2E Debugging Iteration $iteration/$max_iterations"
-    echo "═══════════════════════════════════════════════"
-    echo ""
+## Fixes to Apply:
+1. Backend not healthy:
+   - Kill zombies: pkill -9 -f uvicorn
+   - Restart: cd backend && python -m uvicorn main:app --reload --port 8100 &
+   - Wait 5 seconds
+   - Verify: curl -f http://localhost:8100/health
 
-    # === DIAGNOSTIC PHASE ===
-    echo "📋 Step 1: Running diagnostic checks..."
-    echo ""
+2. Database not running:
+   - Start: docker-compose up -d postgres
+   - Wait 3 seconds
 
-    # Check 1: Backend running?
-    echo "  [1/5] Backend process status..."
-    ps aux | grep uvicorn | grep -v grep || echo "     ⚠️  Backend not running"
-    lsof -i :8100 2>/dev/null || echo "     ⚠️  Port 8100 not listening"
-    echo ""
+3. Test user missing:
+   - Create via API or seed script
 
-    # Check 2: Backend health
-    echo "  [2/5] Backend health check..."
-    if curl -s -f http://localhost:8100/health > /dev/null 2>&1; then
-        echo "     ✅ Backend responding"
-    else
-        echo "     ❌ Backend not responding"
-    fi
-    echo ""
+## Test Execution:
+Run: python3 test_feature_XXX_e2e.py
+Check exit code: echo $?
 
-    # Check 3: Database connectivity
-    echo "  [3/5] Database status..."
-    docker ps | grep postgres || echo "     ⚠️  Postgres not running"
-    echo ""
+## Success Criteria:
+Test exits with code 0 (all assertions passed).
 
-    # Check 4: Backend logs
-    echo "  [4/5] Recent backend logs..."
-    tail -20 backend/logs/app.log 2>/dev/null || tail -20 logs/app.log 2>/dev/null || echo "     ℹ️  No logs found"
-    echo ""
+## Completion:
+When test passes, output: <promise>E2E_PASSED</promise>
 
-    # Check 5: Zombie processes
-    echo "  [5/5] Checking for zombie processes..."
-    zombies=$(ps aux | grep -E "(python.*main\.py|uvicorn)" | grep -v grep | wc -l)
-    echo "     Found $zombies backend processes"
-    echo ""
-
-    # === FIX PHASE ===
-    echo "🔧 Step 2: Applying fixes based on diagnostics..."
-    echo ""
-
-    # Fix 1: Backend not running or not healthy
-    if ! curl -s -f http://localhost:8100/health > /dev/null 2>&1; then
-        echo "  → Fixing backend connectivity..."
-
-        # Kill zombies
-        pkill -9 -f uvicorn 2>/dev/null
-        pkill -9 -f "python.*main.py" 2>/dev/null
-        sleep 2
-
-        # Restart backend
-        cd backend 2>/dev/null || cd .
-        python -m uvicorn main:app --reload --port 8100 --host 0.0.0.0 > /dev/null 2>&1 &
-        sleep 5
-
-        # Verify
-        if curl -s -f http://localhost:8100/health > /dev/null 2>&1; then
-            echo "     ✅ Backend restarted successfully"
-        else
-            echo "     ❌ Backend still not responding"
-        fi
-        cd - > /dev/null 2>&1
-    fi
-    echo ""
-
-    # Fix 2: Database not running
-    if ! docker ps | grep postgres > /dev/null 2>&1; then
-        echo "  → Starting database..."
-        docker-compose up -d postgres 2>/dev/null
-        sleep 3
-        echo "     ✅ Database started"
-    fi
-    echo ""
-
-    # === TEST PHASE ===
-    echo "🧪 Step 3: Re-running E2E test..."
-    echo ""
-
-    # Run the E2E test
-    python3 "$e2e_test"
-    test_result=$?
-    echo ""
-
-    # Check result
-    if [ $test_result -eq 0 ]; then
-        echo "═══════════════════════════════════════════════"
-        echo "✅ SUCCESS! E2E test PASSED on iteration $iteration"
-        echo "═══════════════════════════════════════════════"
-        echo ""
-        echo "<promise>E2E_PASSED</promise>"
-        exit 0  # SUCCESS - Exit loop
-    else
-        echo "❌ E2E test still failing on iteration $iteration"
-        echo ""
-    fi
-
-    # Increment iteration
-    iteration=$((iteration + 1))
-
-    # Short delay before next iteration
-    if [ $iteration -le $max_iterations ]; then
-        echo "⏱️  Waiting 3 seconds before next iteration..."
-        sleep 3
-        echo ""
-    fi
-done
-
-# Max iterations reached
-echo "═══════════════════════════════════════════════"
-echo "❌ E2E DEBUGGING FAILED"
-echo "═══════════════════════════════════════════════"
-echo ""
-echo "Reached maximum iterations ($max_iterations) without success."
-echo ""
-echo "Possible issues:"
-echo "  - Backend code has bugs preventing proper response"
-echo "  - Database schema doesn't match expected structure"
-echo "  - Test expectations don't match actual behavior"
-echo "  - Network/port configuration issues"
-echo ""
-echo "DO NOT mark feature as passing! Continue debugging or mark 'passes': false"
-exit 1
+## Important:
+- Read your own previous attempts from files/git history
+- Each iteration sees your past work - learn from failures
+- DO NOT mark feature as passing without this promise!
+" --max-iterations 10 --completion-promise "E2E_PASSED"
 ```
 
-**How to use this loop:**
+**How Ralph loops work:**
 
-1. **Copy the script above** and replace `test_feature_XXX_e2e.py` with your actual E2E test file name
-2. **Run the script** - it will iterate up to 10 times
-3. **Each iteration** runs diagnostics → applies fixes → re-runs test
+1. **Stop Hook**: Ralph intercepts your exit attempts and feeds the same prompt back
+2. **Self-Referential**: You see modified files and git history from your previous attempts
+3. **Autonomous Iteration**: Keep trying different fixes until test passes
+4. **Completion Promise**: Output `<promise>E2E_PASSED</promise>` signals genuine success
+5. **Max Iterations**: Safety bound prevents infinite loops (10 iterations for E2E debugging)
 4. **Success** → Outputs `<promise>E2E_PASSED</promise>` and exits
 5. **Failure** → Shows what went wrong, suggests next steps
 
@@ -702,154 +628,82 @@ grep -r "password.*GET" . && echo "❌ CREDENTIALS IN URL!"
 
 **Only mark security features passing after 100% checklist!**
 
-### STEP 13.5: FEATURE QUALITY LOOP (Ralph Philosophy v3.7.0)
+### STEP 13.5: FEATURE QUALITY LOOP (Ralph Wiggum v4.0.0)
 
-**Before marking feature as passing, iterate through ALL quality gates:**
+**Before marking feature as passing, use Ralph loop to iterate through ALL quality gates:**
 
-```bash
-#!/bin/bash
-# Feature Quality Loop - Iterate until all gates pass
+```
+/ralph-loop "Validate all quality gates for [FEATURE_NAME] before marking complete.
 
-echo "🎯 FEATURE QUALITY LOOP"
-echo "Iterating through all quality gates until ALL pass..."
-echo ""
+## 8 Quality Gates (ALL must pass):
 
-# Initialize gate tracking
-gates_passed=0
-total_gates=8
+### Gate 1: Stop Condition
+Check project completion:
+- Total: cat spec/feature_list.json | python3 -c 'import json, sys; print(len(json.load(sys.stdin)))'
+- Passing: cat spec/feature_list.json | python3 -c 'import json, sys; print(len([f for f in json.load(sys.stdin) if f.get(\"passes\")]))'
+- If passing == total → STOP (project 100% complete)
+- Else → ✅ Proceed
 
-# Gate 1: Stop condition check
-echo "[Gate 1/8] Stop condition..."
-total=$(cat spec/feature_list.json | python3 -c "import json, sys; print(len(json.load(sys.stdin)))")
-passing=$(cat spec/feature_list.json | python3 -c "import json, sys; print(len([f for f in json.load(sys.stdin) if f.get('passes')]))")
-if [ "$passing" = "$total" ]; then
-    echo "  ❌ STOP! Project is 100% complete - no more work needed!"
-    exit 1
-else
-    echo "  ✅ Project not complete ($passing/$total) - proceed"
-    gates_passed=$((gates_passed + 1))
-fi
-echo ""
+### Gate 2: Services Healthy
+Backend health check:
+- Run: curl -f http://localhost:8100/health
+- If fails → Fix: pkill -f uvicorn && cd backend && python -m uvicorn main:app --reload --port 8100 &
+- Must pass before proceeding
 
-# Gate 2: Services healthy
-echo "[Gate 2/8] Services health check..."
-if curl -s -f http://localhost:8100/health > /dev/null 2>&1; then
-    echo "  ✅ Backend healthy"
-    gates_passed=$((gates_passed + 1))
-else
-    echo "  ❌ Backend not healthy - fix before proceeding!"
-    echo "  → Run: pkill -f uvicorn && cd backend && python -m uvicorn main:app --reload --port 8100 &"
-    exit 1
-fi
-echo ""
+### Gate 3: Database Schema
+Validate schema (if applicable):
+- Check required tables/columns exist
+- Run migrations if needed
+- ✅ if validated or not applicable
 
-# Gate 3: Database schema validated (if needed)
-echo "[Gate 3/8] Database schema..."
-# Add your schema validation here
-# Example: Check if required columns exist
-echo "  ✅ Schema validated (or not applicable)"
-gates_passed=$((gates_passed + 1))
-echo ""
+### Gate 4: Browser Integration
+Test with F12 DevTools (if frontend feature):
+- Zero CORS errors in Network tab
+- Zero red errors in Console tab
+- Proper 200 OK responses
+- Screenshot evidence in .claude/verification/
 
-# Gate 4: Browser integration tested (if frontend feature)
-echo "[Gate 4/8] Browser integration..."
-# Manual check - user should have tested with F12 DevTools
-echo "  ℹ️  Have you tested with F12 DevTools?"
-echo "     - Zero CORS errors in Network tab?"
-echo "     - Zero red errors in Console tab?"
-echo "     - Proper 200 OK responses?"
-read -p "  Tested with DevTools? (y/n): " devtools_tested
-if [ "$devtools_tested" = "y" ]; then
-    echo "  ✅ Browser integration tested"
-    gates_passed=$((gates_passed + 1))
-else
-    echo "  ❌ Test with browser DevTools first!"
-    exit 1
-fi
-echo ""
+### Gate 5: E2E Test Passing (CRITICAL!)
+E2E test must pass:
+- Find test: git diff --name-only HEAD | grep -E 'test_.*_(e2e|api)\\.(py|ts|js)$'
+- Run test: python3 test_feature_XXX_e2e.py
+- Check exit code: echo $?
+- If fails → Use E2E debugging loop (STEP 12.5) first!
+- Must exit with code 0
 
-# Gate 5: E2E test created and passing (CRITICAL!)
-echo "[Gate 5/8] E2E test execution..."
-e2e_test=$(git diff --name-only HEAD | grep -E "test_.*_(e2e|api)\.(py|ts|js)$" | head -1)
-if [ -z "$e2e_test" ]; then
-    echo "  ❌ No E2E test found!"
-    echo "  → Create test_feature_XXX_e2e.py first"
-    exit 1
-fi
+### Gate 6: E2E Artifacts
+Verification artifacts (if UI feature):
+- Screenshots: ls -1 .claude/verification/*.png
+- Test results: cat .claude/verification/test_results.json
+- ✅ if exists (or not applicable for backend-only)
 
-python3 "$e2e_test"
-if [ $? -eq 0 ]; then
-    echo "  ✅ E2E test passed"
-    gates_passed=$((gates_passed + 1))
-else
-    echo "  ❌ E2E test failed - run debugging loop (STEP 12.5)!"
-    exit 1
-fi
-echo ""
+### Gate 7: Zero TODOs
+No incomplete work:
+- Check: git diff --name-only HEAD | xargs grep -n 'TODO\\|FIXME\\|WIP'
+- If found → Complete them before proceeding
+- Must have zero TODOs/FIXMEs
 
-# Gate 6: Screenshots saved (if UI feature)
-echo "[Gate 6/8] E2E artifacts..."
-screenshot_count=$(ls -1 .claude/verification/*.png 2>/dev/null | wc -l)
-if [ -f ".claude/verification/test_results.json" ] && [ $screenshot_count -gt 0 ]; then
-    echo "  ✅ Screenshots ($screenshot_count) and test_results.json exist"
-    gates_passed=$((gates_passed + 1))
-else
-    echo "  ⚠️  No E2E artifacts (acceptable if backend-only feature)"
-    gates_passed=$((gates_passed + 1))
-fi
-echo ""
+### Gate 8: Security Checklist
+If auth/security feature:
+- [ ] No credentials in URLs
+- [ ] Passwords hashed (bcrypt cost 12+)
+- [ ] JWT tokens expire (< 24h)
+- [ ] Input validation
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] XSS prevention (escaped output)
+- [ ] Rate limiting
+- [ ] CORS configured
+- ✅ all items or not applicable
 
-# Gate 7: Zero TODOs
-echo "[Gate 7/8] Zero TODOs check..."
-modified_files=$(git diff --name-only HEAD)
-todos=$(echo "$modified_files" | xargs grep -n "TODO\|FIXME\|WIP" 2>/dev/null || true)
-if [ -z "$todos" ]; then
-    echo "  ✅ No TODOs in implementation code"
-    gates_passed=$((gates_passed + 1))
-else
-    echo "  ❌ TODOs found:"
-    echo "$todos"
-    exit 1
-fi
-echo ""
+## Completion:
+When ALL 8 gates pass, output: <promise>FEATURE_COMPLETE</promise>
 
-# Gate 8: Security checklist (if applicable)
-echo "[Gate 8/8] Security checklist..."
-read -p "  Is this an auth/security feature? (y/n): " is_security
-if [ "$is_security" = "y" ]; then
-    echo "  Security checklist:"
-    echo "    - [ ] No credentials in URLs"
-    echo "    - [ ] Passwords hashed (bcrypt cost 12+)"
-    echo "    - [ ] JWT tokens expire (< 24h)"
-    echo "    - [ ] Input validation"
-    echo "    - [ ] SQL injection prevention"
-    echo "    - [ ] XSS prevention"
-    echo "    - [ ] Rate limiting"
-    echo "    - [ ] CORS configured"
-    read -p "  All security items checked? (y/n): " security_done
-    if [ "$security_done" = "y" ]; then
-        echo "  ✅ Security checklist complete"
-        gates_passed=$((gates_passed + 1))
-    else
-        echo "  ❌ Complete security checklist first!"
-        exit 1
-    fi
-else
-    echo "  ✅ Not a security feature (skipped)"
-    gates_passed=$((gates_passed + 1))
-fi
-echo ""
-
-# All gates passed!
-echo "═══════════════════════════════════════════════"
-echo "✅ ALL QUALITY GATES PASSED ($gates_passed/$total_gates)"
-echo "═══════════════════════════════════════════════"
-echo ""
-echo "<promise>FEATURE_COMPLETE</promise>"
-echo ""
-echo "You may now mark the feature as passing in feature_list.json!"
-echo "You may also create the marker file:"
-echo "  echo 'FEATURE_COMPLETE' > .claude/completion_promise.marker"
+## Important:
+- DO NOT skip any gate
+- DO NOT mark feature as passing without this promise
+- Each iteration sees your previous validation attempts
+- Fix issues iteratively until all gates pass
+" --max-iterations 20 --completion-promise "FEATURE_COMPLETE"
 ```
 
 **Critical Rules:**
