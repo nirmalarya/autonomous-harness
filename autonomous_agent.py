@@ -108,6 +108,18 @@ Environment Variables:
     )
 
     parser.add_argument(
+        "--force-ralph",
+        action="store_true",
+        help="Require Ralph Wiggum plugin for iteration (error if not available)",
+    )
+
+    parser.add_argument(
+        "--force-bash",
+        action="store_true",
+        help="Use bash loops for iteration even if Ralph plugin available (v3.7.0 mode)",
+    )
+
+    parser.add_argument(
         "--version",
         action="store_true",
         help="Show version and exit",
@@ -142,6 +154,18 @@ def main() -> None:
         print("=" * 70)
         print("\nPlease install missing dependencies and try again.")
         print("After installing, re-run: claude-harness [your-args]\n")
+        sys.exit(1)
+
+    # v4.0.0: Detect Ralph availability and determine iteration mode
+    from ralph_detector import get_iteration_mode, print_iteration_mode_status
+
+    try:
+        iteration_mode = get_iteration_mode(
+            force_ralph=args.force_ralph, force_bash=args.force_bash
+        )
+        print_iteration_mode_status(iteration_mode, verbose=True)
+    except (RuntimeError, ValueError) as e:
+        print(f"\n❌ Error: {e}\n")
         sys.exit(1)
 
     # Check for authentication (supports both OAuth token and API key)
@@ -200,6 +224,7 @@ def main() -> None:
                 session_timeout_minutes=args.session_timeout,
                 stall_timeout_minutes=args.stall_timeout,
                 max_retries=args.max_retries,
+                iteration_mode=iteration_mode,
             )
         )
     except KeyboardInterrupt:

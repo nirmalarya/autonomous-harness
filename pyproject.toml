@@ -42,6 +42,7 @@ packages = ["infra", "validators", "prompts", "harness_data"]
 py-modules = [
     "agent",
     "autonomous_agent",
+    "bash_loops",
     "client",
     "error_handler",
     "loop_detector",
@@ -49,6 +50,7 @@ py-modules = [
     "output_formatter",
     "preflight",
     "progress",
+    "ralph_detector",
     "retry_manager",
     "security",
     "setup_mcp",

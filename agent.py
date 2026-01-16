@@ -142,6 +142,7 @@ async def run_autonomous_agent(
     session_timeout_minutes: int = 120,
     stall_timeout_minutes: int = 10,
     max_retries: int = 3,
+    iteration_mode: str = "ralph",
 ) -> None:
     """
     Run the autonomous agent loop with production reliability features.
@@ -155,6 +156,7 @@ async def run_autonomous_agent(
         session_timeout_minutes: Overall session timeout (default: 120 min)
         stall_timeout_minutes: No-activity timeout (default: 10 min)
         max_retries: Max retry attempts per feature (default: 3)
+        iteration_mode: Iteration mode - "ralph" (Ralph plugin) or "bash" (v3.7.0 loops)
     """
     # Read version
     try:
