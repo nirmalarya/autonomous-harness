@@ -9,7 +9,16 @@ Production-ready autonomous coding harness using Claude Code SDK. Build complete
 - Auto-continues between sessions with fresh context windows
 - Progress persisted via feature_list.json and git commits
 
+🔄 **Iteration Philosophy (v3.7.0 + v4.0.0)**
+- **v4.0.0**: Ralph Wiggum plugin integration with auto-installation
+- **v3.7.0**: Completion promises enforce genuine task completion
+- **Structured retry loops** - E2E debugging (10 iterations), feature quality (8 gates)
+- **Self-healing infrastructure** - Auto-restarts backend, fixes DB connections
+- **Iteration metrics tracking** - Analyze which features require most iteration
+- **"Iteration > Perfection"** - Keep trying until quality gates pass
+
 🔒 **Production-Ready Quality**
+- **v3.6.0**: Browser automation enforced for fullstack apps (Puppeteer MCP)
 - **v3.2.2**: Mandatory E2E debugging - no workarounds allowed
 - **v3.2.1**: E2E test execution enforced with proof required
 - Triple timeout protection (15/10/120 min)
@@ -47,6 +56,8 @@ pip install -e .
 ```
 
 This automatically installs all Python dependencies including `claude-code-sdk`.
+
+**v4.0.0 Note:** Starting with v4.0.0, the harness will auto-install Claude Code CLI and Ralph Wiggum plugin on first run. Node.js v18+ is required (harness will provide installation instructions if missing).
 
 ### 2. Authentication Setup
 
@@ -225,32 +236,165 @@ claude-harness --mode backlog --project-dir ./my_project
 
 **Note:** Both integrations can be configured simultaneously. The agent will use whichever is available based on environment variables.
 
-## What's New in v3.2.2
+## Release History
 
-✅ **Critical Quality Fix - Mandatory E2E Debugging:**
-- **E2E Test Failures Now Require Debugging** - Agents can't skip to code verification when E2E tests fail
-- **Debugging Scripts Provided** - Step-by-step scripts for common issues (backend timeout, DB connection, zombie processes)
-- **Forbidden Workarounds** - Explicitly blocked shortcuts that bypass real testing
-- **Self-Healing** - Agent fixes infrastructure issues (restart backend, start DB, create test users)
-- **Quality Gate** - "If E2E failed: Debugged, fixed, re-ran until passing" is now MANDATORY
+### 🚀 Coming in v4.0.0 (In Development)
 
-✅ **Skills System (v3.2.0):**
-- **5 Built-in Skills** - puppeteer-testing, code-quality, project-patterns, harness-patterns, lsp-navigation
-- **Auto-Discovery** - Skills loaded from `.claude/skills/` and `~/.claude/skills/`
-- **Mode-Specific** - Different skills for greenfield, enhancement, and bugfix modes
-- **Progressive Disclosure** - SKILL.md + supporting files for rich domain knowledge
+**Ralph Wiggum Plugin Integration - Anthropic Native Iteration**
 
-✅ **LSP Integration (v3.2.0):**
-- **Code Intelligence** - goToDefinition, findReferences, hover, documentSymbol, etc.
-- **Navigate Codebases** - Find usages, jump to definitions, explore call hierarchies
-- **Context-Aware** - Understand existing patterns before making changes
+Making the Ralph Wiggum plugin foundational for iteration:
 
-✅ **E2E Enforcement (v3.2.1):**
+✨ **Auto-Installation System:**
+- **Preflight Dependency Checks** - Auto-verifies Node.js v18+, Claude Code CLI, and Ralph plugin
+- **One-Command Setup** - Harness auto-installs Claude Code CLI and Ralph plugin if missing
+- **Platform-Specific Guidance** - Detailed Node.js installation instructions for macOS, Linux, Windows
+- **Zero Manual Configuration** - Dependencies handled automatically on first run
+
+🔄 **Ralph Loop Integration:**
+- **Native `/ralph-loop` Commands** - Use official Ralph plugin for E2E debugging and feature iteration
+- **SDK-Level Stop Hooks** - Ralph intercepts exits, feeds prompts back until completion
+- **Completion Promises** - `<promise>FEATURE_COMPLETE</promise>` markers signal genuine completion
+- **Max Iterations Safety** - Built-in bounds prevent infinite loops (10 for E2E, 20 for features)
+
+📖 **Documentation:** [v4.0.0 Roadmap](ROADMAP_v4.0.0.md) | [Architecture Guide](docs/ARCHITECTURE_v4.md)
+
+**Status:** Phase 1 complete (preflight system), Phase 2 in progress (Ralph loop integration)
+
+---
+
+### v3.7.0 (2026-01-15) - Ralph Philosophy Integration
+
+**Iteration > Perfection - Structured Retry Loops**
+
+✅ **Completion Promises System:**
+- **Explicit Success Markers** - `<promise>E2E_PASSED</promise>`, `<promise>FEATURE_COMPLETE</promise>`
+- **Validation Hooks** - Blocks feature marking until completion promise output
+- **Quality Gate Enforcement** - Can't skip to next feature without all 8 gates passing
+- **Marker File Fallback** - `.claude/completion_promise.marker` for manual override
+
+🔄 **E2E Debugging Iteration Loop:**
+- **Structured 10-Iteration Loop** - Automatic debugging with diagnostics, fixes, and re-tests
+- **Self-Healing Infrastructure** - Auto-restarts backend, fixes DB connections, kills zombies
+- **No Premature Exits** - Loop continues until E2E passes or max iterations reached
+- **Completion Promise Required** - Must output promise before marking feature as passing
+
+📊 **Iteration Metrics Tracking:**
+- **Per-Feature Metrics** - Track iteration count, success rate, timestamps
+- **Statistics API** - `get_iteration_statistics()` for analysis
+- **JSON Storage** - `.claude/iteration_metrics.json` for historical data
+- **Pattern Learning** - Identify which features require most iteration
+
+📖 **Full changelog:** [v3.7.0](CHANGELOG_v3.7.0.md)
+
+---
+
+### v3.6.0 - Browser Automation Enforcement
+
+**Fullstack Apps Must Test Through UI**
+
+✅ **Browser Automation Required:**
+- **Philosophy Change** - Backend APIs are implementation details; test the UI users interact with
+- **Puppeteer MCP Integration** - Navigate, click, fill forms, take screenshots
+- **Verification Artifacts** - Screenshots saved to `.claude/verification/`, `test_results.json` required
+- **Infrastructure Detection** - Auto-determines if E2E needed based on feature description
+
+🚫 **Forbidden Workarounds:**
+- **No API-Only Testing** - curl/requests insufficient for fullstack features
+- **No JavaScript Evaluation** - Must use actual UI interactions
+- **No Screenshot Faking** - Real browser automation required
+- **Mandatory Debugging** - Can't skip E2E failures to code verification
+
+---
+
+### v3.3.0 - Backlog Mode Integrations
+
+**Automated Issue Tracking with Linear and Azure DevOps**
+
+✅ **Linear Integration:**
+- **20 Linear Tools** - Full issue management API (fetch, update, comment, create)
+- **Auto-Status Sync** - Todo → In Progress → Done workflow
+- **Implementation Comments** - Auto-posts file changes and test results to issues
+- **META Issue Tracking** - Session progress tracked in dedicated meta issue
+- **State Persistence** - `.cursor/linear-backlog-state.json` for resume
+
+✅ **Azure DevOps Integration:**
+- **Work Item Fetch** - Pull PBIs, Features, Epics from ADO
+- **Status Updates** - Auto-updates work item state as features complete
+- **PR Creation** - Automatic PR creation with work item linking
+- **Query Support** - Fetch by query, iteration path, or work item ID
+
+---
+
+### v3.2.2 - Mandatory E2E Debugging
+
+**No More Skipping Failed Tests**
+
+✅ **Critical Quality Fix:**
+- **Mandatory E2E Debugging** - Agents can't skip to code verification when E2E tests fail
+- **Debugging Scripts Provided** - Step-by-step scripts for backend timeout, DB issues, zombies
+- **Forbidden Workarounds** - Explicitly blocks shortcuts that bypass real testing
+- **Self-Healing** - Agent fixes infrastructure (restart backend, start DB, create test users)
+- **Quality Gate** - "If E2E failed: Debugged, fixed, re-ran until passing" is MANDATORY
+
+📖 **Full changelog:** [v3.2.2](CHANGELOG_v3.2.2.md)
+
+---
+
+### v3.2.1 - E2E Test Enforcement
+
+**Proof of Passing Required**
+
+✅ **E2E Enforcement:**
 - **Mandatory E2E Execution** - All user-facing features must pass E2E tests
 - **Proof Required** - Agent must show test output with exit code 0
 - **No More "Trust Me" Commits** - Code verification alone is insufficient
+- **Git Commit Blocked** - Hook prevents commits without E2E proof
 
-📖 **Full changelogs:** [v3.2.2](CHANGELOG_v3.2.2.md) | [v3.2.1](CHANGELOG_v3.2.1.md) | [v3.2.0](CHANGELOG_v3.2.0.md) | [v3.1.0](CHANGELOG_v3.1.0.md)
+📖 **Full changelog:** [v3.2.1](CHANGELOG_v3.2.1.md)
+
+---
+
+### v3.2.0 - Skills System & LSP Integration
+
+**Code Intelligence and Domain Knowledge**
+
+✅ **Skills System:**
+- **5 Built-in Skills** - puppeteer-testing, code-quality, project-patterns, harness-patterns, lsp-navigation
+- **Auto-Discovery** - Skills loaded from `.claude/skills/`, `~/.claude/skills/`, and bundled harness skills
+- **Mode-Specific Loading** - Different skills for greenfield, enhancement, and bugfix modes
+- **Progressive Disclosure** - SKILL.md + supporting files (patterns.md, examples/)
+
+✅ **LSP Integration:**
+- **Code Intelligence** - goToDefinition, findReferences, hover, documentSymbol, workspace search
+- **Auto-Installation** - Detects tech stack, installs language servers (TypeScript, Python, etc.)
+- **Context-Aware Navigation** - Agent understands existing patterns before making changes
+- **LSP Marketplace Plugins** - Uses official Anthropic LSP plugins
+
+📖 **Full changelog:** [v3.2.0](CHANGELOG_v3.2.0.md)
+
+---
+
+### v3.1.0 - Triple Timeout Protection
+
+**Prevents Infinite Hangs**
+
+✅ **Timeout System:**
+- **No-Response Timeout** - 15 minutes (agent not producing output)
+- **Stall Timeout** - 10 minutes (no progress detected)
+- **Session Timeout** - 120 minutes (overall session limit)
+- **Loop Detection** - Detects repeated file reads and stuck patterns
+
+📖 **Full changelog:** [v3.1.0](CHANGELOG_v3.1.0.md)
+
+---
+
+### Earlier Versions
+
+- **v3.0.0** - Two-agent pattern, auto-continuation, progress persistence
+- **v2.x** - MCP integration, security hooks, retry logic
+- **v1.x** - Initial autonomous agent implementation
+
+📖 **Full release history:** [All Changelogs](https://github.com/nirmalarya/claude-harness/tree/main)
 
 ## Important Timing Expectations
 
@@ -300,10 +444,11 @@ claude-harness/
 ├── autonomous_agent.py       # Main entry point
 ├── agent.py                  # Agent session logic
 ├── client.py                 # Claude SDK client with skills integration
+├── preflight.py              # Dependency checks & auto-installation (v4.0.0)
 ├── security.py               # Bash command allowlist and validation
 ├── skills_manager.py         # Skills discovery and loading (v3.2.0)
 ├── lsp_plugins.py            # LSP code intelligence plugins (v3.2.0)
-├── progress.py               # Progress tracking utilities
+├── progress.py               # Progress tracking utilities (v3.7.0: iteration metrics)
 ├── retry_manager.py          # Feature retry and skip logic
 ├── loop_detector.py          # Infinite loop prevention
 ├── error_handler.py          # Structured error logging
@@ -311,7 +456,7 @@ claude-harness/
 ├── prompts/
 │   ├── app_spec.txt          # Application specification
 │   ├── initializer_prompt.md # First session prompt
-│   ├── coding_prompt.md      # Continuation session prompt (with v3.2.2 E2E debugging)
+│   ├── coding_prompt.md      # Continuation session prompt (v3.7.0: iteration loops)
 │   └── [other prompts]       # Enhancement, bugfix, validation modes
 ├── harness_data/             # Bundled package data (v3.2.0)
 │   └── .claude/skills/       # Built-in skills
@@ -321,12 +466,19 @@ claude-harness/
 │       ├── harness-patterns/
 │       └── lsp-navigation/
 ├── validators/               # Quality enforcement hooks
+│   ├── completion_promise_validator.py  # Completion promise enforcement (v3.7.0)
 │   ├── e2e_hook.py           # E2E test enforcement (v3.2.1)
 │   ├── e2e_verifier.py       # E2E debugging enforcement (v3.2.2)
 │   ├── secrets_hook.py       # Secrets scanning
 │   └── browser_cleanup_hook.py
 ├── infra/
 │   └── healer.py             # Infrastructure self-healing
+├── docs/
+│   ├── ARCHITECTURE_v4.md    # v4.0.0 architecture & terminology (v4.0.0)
+│   ├── USER_GUIDE.md         # Comprehensive user documentation
+│   └── DEVELOPMENT.md        # Development setup guide
+├── ROADMAP_v4.0.0.md         # v4.0.0 implementation plan (v4.0.0)
+├── CHANGELOG_v3.7.0.md       # v3.7.0 release notes
 └── requirements.txt          # Python dependencies
 ```
 

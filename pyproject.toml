@@ -47,6 +47,7 @@ py-modules = [
     "loop_detector",
     "lsp_plugins",
     "output_formatter",
+    "preflight",
     "progress",
     "retry_manager",
     "security",

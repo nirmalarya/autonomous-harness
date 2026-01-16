@@ -15,9 +15,11 @@ Example Usage:
 import argparse
 import asyncio
 import os
+import sys
 from pathlib import Path
 
 from agent import run_autonomous_agent
+from preflight import run_preflight
 
 # Configuration
 DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
@@ -130,6 +132,17 @@ def main() -> None:
             pkg_version = get_version()
         print(f"claude-harness v{pkg_version}")
         return
+
+    # v4.0.0: Pre-flight dependency checks
+    # Check for Node.js, Claude Code CLI, and Ralph Wiggum plugin
+    # Auto-installs Claude Code and Ralph if missing (Node.js must be manual)
+    if not run_preflight():
+        print("\n" + "=" * 70)
+        print("❌ Pre-flight checks failed. Cannot start harness.")
+        print("=" * 70)
+        print("\nPlease install missing dependencies and try again.")
+        print("After installing, re-run: claude-harness [your-args]\n")
+        sys.exit(1)
 
     # Check for authentication (supports both OAuth token and API key)
     oauth_token = os.environ.get("CLAUDE_CODE_OAUTH_TOKEN")
