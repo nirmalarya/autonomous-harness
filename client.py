@@ -17,6 +17,7 @@ from security import bash_security_hook
 from setup_mcp import MCPServerSetup
 from skills_manager import SkillsManager
 from validators.browser_cleanup_hook import browser_cleanup_hook
+from validators.completion_promise_validator import completion_promise_hook
 from validators.e2e_hook import e2e_validation_hook
 from validators.secrets_hook import secrets_scan_hook
 
@@ -224,6 +225,12 @@ def create_client(project_dir: Path, model: str, mode: str = "greenfield") -> Cl
                         hooks=[
                             bash_security_hook,  # Command allowlist
                             secrets_scan_hook,  # Secrets detection
+                        ],
+                    ),
+                    HookMatcher(
+                        matcher="Edit",
+                        hooks=[
+                            completion_promise_hook,  # Completion promise validation (v3.7.0)
                         ],
                     ),
                 ],
