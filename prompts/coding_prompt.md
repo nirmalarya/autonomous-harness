@@ -398,152 +398,182 @@ Use browser automation tools:
 - Skip visual verification
 - Mark tests passing without thorough verification
 
-### STEP 12: EXECUTE E2E TEST (MANDATORY - NOT CODE VERIFICATION!)
+### STEP 12: EXECUTE E2E TEST WITH PUPPETEER (MANDATORY!)
 
-**CRITICAL: E2E tests must ACTUALLY RUN against running services!**
+**CRITICAL: Use Puppeteer MCP tools directly - DO NOT write Python/JavaScript test scripts!**
 
-**TWO TYPES OF TESTS - YOU MUST RUN THE E2E ONE:**
-
-1. ❌ **Code Verification Test** (simple, standalone)
-   - Example: `test_feature_99_simple.py`, `test_feature_99_verification.py`
-   - Just reads source files, greps for patterns
-   - Doesn't require running backend/frontend
-   - **NOT SUFFICIENT** for marking feature as passing!
-
-2. ✅ **E2E Test** (real integration test)
-   - Example: `test_feature_99_e2e.py`, `test_feature_99_api.py`
-   - Makes real HTTP requests to running backend
-   - Requires backend + database + services running
-   - **REQUIRED** for marking feature as passing!
+**For fullstack applications (backend + frontend), you MUST:**
+1. Test features through the actual UI using Puppeteer MCP tools
+2. Take screenshots documenting each step
+3. Verify functionality AND visual appearance
+4. Save test results to `.claude/verification/test_results.json`
 
 **STEP-BY-STEP E2E TEST EXECUTION:**
 
 ```bash
-# 1. Find E2E test file (NOT code verification!)
-e2e_test=$(git diff --name-only HEAD | grep -E "test_.*_(e2e|api|integration)\.(py|spec\.ts|test\.js)$" | head -1)
-
-if [ -z "$e2e_test" ]; then
-    echo "❌ NO E2E TEST FOUND!"
-    echo "You created a code verification test, but not an E2E test!"
-    echo "E2E test must:"
-    echo "  - Make HTTP requests to running backend"
-    echo "  - Test complete user workflow"
-    echo "  - Verify data persistence"
-    echo "DO NOT mark feature as passing without E2E test!"
+# 1. Verify services are running
+echo "Checking if services are running..."
+if ! curl -s http://localhost:3000 > /dev/null 2>&1; then
+    echo "❌ FRONTEND NOT RUNNING!"
+    echo "Start frontend before testing."
     exit 1
 fi
 
-echo "Found E2E test: $e2e_test"
-
-# 2. Verify services are running
-echo "Checking if services are running..."
 if ! curl -s http://localhost:8100/health > /dev/null 2>&1; then
     echo "❌ BACKEND NOT RUNNING!"
-    echo "E2E tests require running backend."
-    echo "Start backend first, then re-run test."
+    echo "Start backend before testing."
     exit 1
 fi
 
-# 3. Make test executable
-chmod +x "$e2e_test"
+# 2. Create verification directory
+mkdir -p .claude/verification
 
-# 4. RUN THE E2E TEST
-echo "EXECUTING E2E TEST NOW..."
-echo "This will make real HTTP requests to http://localhost:8100"
-echo ""
-
-if [[ "$e2e_test" == *.py ]]; then
-    python3 "$e2e_test"
-    test_result=$?
-elif [[ "$e2e_test" == *.spec.ts ]] || [[ "$e2e_test" == *.test.js ]]; then
-    npm test "$e2e_test"
-    test_result=$?
-fi
-
-# 5. Verify test PASSED
-if [ $test_result -ne 0 ]; then
-    echo ""
-    echo "❌ E2E TEST FAILED!"
-    echo "The feature does NOT work end-to-end."
-    echo "Fix implementation until E2E test passes!"
-    echo "DO NOT mark feature as passing!"
-    exit 1
-fi
-
-echo ""
-echo "✅ E2E Test executed and PASSED"
-echo "Feature works end-to-end with running services!"
+echo "✅ Services running - ready for E2E test"
 ```
 
-**PROOF REQUIRED BEFORE MARKING PASSING:**
-You MUST show output proving E2E test ran:
+**Now use Puppeteer MCP tools to test the feature:**
+
+**Example E2E Test Workflow:**
 ```
-$ python3 test_feature_99_e2e.py
-[Step 1] Login user... ✅
-[Step 2] Create position... ✅
-[Step 3] Close position... ✅
-[Step 4] Verify trade journal... ✅
-✅ ALL E2E TESTS PASSED
+Step 1: Navigate to feature
+   Tool: mcp__puppeteer__puppeteer_navigate
+   Input: {"url": "http://localhost:3000/feature-page"}
+
+Step 2: Take initial screenshot
+   Tool: mcp__puppeteer__puppeteer_screenshot
+   Input: {"name": "step-1-loaded", "width": 1280, "height": 800}
+
+Step 3: Interact with UI (fill form)
+   Tool: mcp__puppeteer__puppeteer_fill
+   Input: {"selector": "input[name='username']", "value": "testuser"}
+   
+   Tool: mcp__puppeteer__puppeteer_fill
+   Input: {"selector": "input[name='email']", "value": "test@example.com"}
+
+Step 4: Submit form
+   Tool: mcp__puppeteer__puppeteer_click
+   Input: {"selector": "button[type='submit']"}
+
+Step 5: Take result screenshot
+   Tool: mcp__puppeteer__puppeteer_screenshot
+   Input: {"name": "step-2-submitted", "width": 1280, "height": 800}
+
+Step 6: Verify success (check for success message in page)
+   Tool: mcp__puppeteer__puppeteer_snapshot
+   Input: {}
+   
+   Verify in snapshot: Success message appears, form data saved, no errors
+
+Step 7: Test persistence (reload page)
+   Tool: mcp__puppeteer__puppeteer_navigate
+   Input: {"url": "http://localhost:3000/feature-page"}
+   
+   Tool: mcp__puppeteer__puppeteer_snapshot
+   Input: {}
+   
+   Verify: Data persists after reload
+
+Step 8: Clean up browser
+   Tool: mcp__puppeteer__puppeteer_evaluate
+   Input: {"expression": "await browser.close()"}
+```
+
+**Create test_results.json documenting the test:**
+
+After completing E2E test with Puppeteer, create `.claude/verification/test_results.json`:
+```json
+{
+  "feature_index": 42,
+  "overall_status": "passed",
+  "e2e_results": [
+    {"step": "Loaded feature page", "status": "passed", "screenshot": "step-1-loaded.png"},
+    {"step": "Filled form fields", "status": "passed", "screenshot": "step-1-loaded.png"},
+    {"step": "Submitted form", "status": "passed", "screenshot": "step-2-submitted.png"},
+    {"step": "Verified success message", "status": "passed", "screenshot": "step-2-submitted.png"},
+    {"step": "Verified data persistence", "status": "passed", "screenshot": "step-3-reloaded.png"}
+  ],
+  "console_errors": [],
+  "visual_issues": []
+}
 ```
 
 **FORBIDDEN SHORTCUTS:**
-- ❌ Running only "code verification" test
-- ❌ Creating E2E test but never running it
-- ❌ Running E2E test that makes no HTTP requests
-- ❌ Marking passing without E2E test execution proof
-- ❌ Mocking HTTP requests instead of hitting real backend
+- ❌ Writing Python/JavaScript test scripts (`test_feature_XXX_e2e.py`)
+- ❌ Only testing backend API with curl/requests
+- ❌ Using `puppeteer_evaluate` to bypass UI interaction
+- ❌ Skipping screenshots or test_results.json
+- ❌ Not testing through actual UI
 
 **ONLY mark feature as passing after:**
-- [x] E2E test file created (named `*_e2e.py` or `*_api.py`)
 - [x] Backend/frontend services are running
-- [x] E2E test executed (actually ran it)
-- [x] E2E test passed (exit code 0, all checks passed)
-- [x] Test output shows successful HTTP requests
+- [x] Used Puppeteer MCP tools to test through UI
+- [x] Screenshots saved to `.claude/verification/*.png`
+- [x] test_results.json created with "overall_status": "passed"
+- [x] Verified data persists after page reload
+- [x] Zero console errors verified via snapshot
+- [x] Browser cleaned up (`await browser.close()`)
 
 ### STEP 12.5: E2E DEBUGGING ITERATION LOOP (MANDATORY!)
 
-**CRITICAL: You CANNOT skip to code verification if E2E test fails!**
+**CRITICAL: You CANNOT skip E2E testing if Puppeteer tests fail!**
 
-If the E2E test fails, use the **Ralph Wiggum plugin** for iterative debugging:
+If the E2E test with Puppeteer fails, use the **Ralph Wiggum plugin** for iterative debugging:
 
 ```
-/ralph-loop "Debug E2E test for [FEATURE_NAME].
+/ralph-loop "Debug E2E test for [FEATURE_NAME] using Puppeteer MCP tools.
 
 ## Your Task:
-Iterate through diagnostics → fixes → re-test until E2E test passes.
+Iterate through diagnostics → fixes → re-test with Puppeteer until feature works.
 
 ## Diagnostic Checks (each iteration):
-1. Backend process status: ps aux | grep uvicorn
-2. Backend health: curl -f http://localhost:8100/health
+1. Frontend status: curl -f http://localhost:3000
+2. Backend status: curl -f http://localhost:8100/health
 3. Database status: docker ps | grep postgres
 4. Backend logs: tail -20 backend/logs/app.log
-5. Zombie processes: ps aux | grep -E '(python.*main\.py|uvicorn)'
+5. Browser console: Use puppeteer_snapshot to check for errors
 
 ## Fixes to Apply:
-1. Backend not healthy:
+1. Frontend not running:
+   - Start: cd frontend && npm run dev &
+   - Wait 5 seconds
+   - Verify: curl -f http://localhost:3000
+
+2. Backend not healthy:
    - Kill zombies: pkill -9 -f uvicorn
    - Restart: cd backend && python -m uvicorn main:app --reload --port 8100 &
    - Wait 5 seconds
    - Verify: curl -f http://localhost:8100/health
 
-2. Database not running:
+3. Database not running:
    - Start: docker-compose up -d postgres
    - Wait 3 seconds
 
-3. Test user missing:
-   - Create via API or seed script
+4. CORS errors in browser:
+   - Add CORS middleware to backend
+   - Verify in Network tab (200 OK responses)
 
-## Test Execution:
-Run: python3 test_feature_XXX_e2e.py
-Check exit code: echo $?
+5. UI bugs found via screenshots:
+   - Fix styling/layout issues
+   - Re-test with Puppeteer
+
+## Test Execution (Use Puppeteer MCP Tools):
+1. Navigate: mcp__puppeteer__puppeteer_navigate to feature page
+2. Snapshot: mcp__puppeteer__puppeteer_snapshot to check page state
+3. Screenshot: mcp__puppeteer__puppeteer_screenshot for visual verification
+4. Interact: mcp__puppeteer__puppeteer_click, puppeteer_fill as needed
+5. Verify: Check snapshot/screenshot for success indicators
 
 ## Success Criteria:
-Test exits with code 0 (all assertions passed).
+- Feature works through UI (verified via Puppeteer)
+- Screenshots show correct visual appearance
+- No console errors (check via snapshot)
+- test_results.json shows "overall_status": "passed"
 
 ## Completion:
 When test passes, output: <promise>E2E_PASSED</promise>
 
 ## Important:
+- Use Puppeteer MCP tools directly, NOT Python scripts
 - Read your own previous attempts from files/git history
 - Each iteration sees your past work - learn from failures
 - DO NOT mark feature as passing without this promise!
@@ -554,31 +584,31 @@ When test passes, output: <promise>E2E_PASSED</promise>
 
 1. **Stop Hook**: Ralph intercepts your exit attempts and feeds the same prompt back
 2. **Self-Referential**: You see modified files and git history from your previous attempts
-3. **Autonomous Iteration**: Keep trying different fixes until test passes
+3. **Autonomous Iteration**: Keep trying different fixes until E2E test passes
 4. **Completion Promise**: Output `<promise>E2E_PASSED</promise>` signals genuine success
 5. **Max Iterations**: Safety bound prevents infinite loops (10 iterations for E2E debugging)
-4. **Success** → Outputs `<promise>E2E_PASSED</promise>` and exits
-5. **Failure** → Shows what went wrong, suggests next steps
 
 **MANDATORY COMPLETION PROMISE:**
 
-When E2E test passes, the script outputs:
+When E2E test passes (using Puppeteer MCP tools), output:
 ```
 <promise>E2E_PASSED</promise>
 ```
 
 This signals that:
-- E2E test executed successfully (exit code 0)
+- Feature tested through actual UI using Puppeteer
 - All test steps passed
 - Feature works end-to-end with running services
-- Screenshots saved (if UI feature)
+- Screenshots saved to `.claude/verification/*.png`
 - test_results.json created with "overall_status": "passed"
+- Zero console errors verified
+- Browser cleaned up
 
 **FORBIDDEN WORKAROUNDS:**
-- ❌ "Backend is slow, but code verification passed, so I'll mark it passing"
-- ❌ "E2E test failed, but the code looks correct, so it's probably fine"
+- ❌ "Backend is slow, but code looks right, so I'll mark it passing"
+- ❌ "Puppeteer test failed, but curl works, so it's probably fine"
 - ❌ "Too many timeouts, I'll just skip E2E testing for this feature"
-- ❌ "I'll increase max_iterations to 20 instead of fixing the root issue"
+- ❌ "I'll write a Python test script instead of using Puppeteer MCP tools"
 - ❌ "I'll output the promise manually without the test actually passing"
 
 **MANDATORY RULE:**
@@ -664,12 +694,13 @@ Test with F12 DevTools (if frontend feature):
 - Screenshot evidence in .claude/verification/
 
 ### Gate 5: E2E Test Passing (CRITICAL!)
-E2E test must pass:
-- Find test: git diff --name-only HEAD | grep -E 'test_.*_(e2e|api)\\.(py|ts|js)$'
-- Run test: python3 test_feature_XXX_e2e.py
-- Check exit code: echo $?
+E2E test with Puppeteer must pass:
+- Test feature through UI using Puppeteer MCP tools
+- Navigate: mcp__puppeteer__puppeteer_navigate
+- Interact: mcp__puppeteer__puppeteer_click, puppeteer_fill
+- Verify: mcp__puppeteer__puppeteer_snapshot, puppeteer_screenshot
 - If fails → Use E2E debugging loop (STEP 12.5) first!
-- Must exit with code 0
+- Must complete successfully with <promise>E2E_PASSED</promise>
 
 ### Gate 6: E2E Artifacts
 Verification artifacts (if UI feature):
@@ -758,15 +789,17 @@ to:
 ✅ Services healthy (backend/frontend running)
 ✅ Database schema validated (if feature uses database)
 ✅ Browser integration tested (if frontend feature)
-✅ **E2E test created AND executed AND passed** (MANDATORY)
-✅ E2E test makes real HTTP requests (not mocked)
-✅ E2E test output shown as proof
+✅ **E2E test with Puppeteer MCP tools completed AND passed** (MANDATORY)
+✅ Feature tested through actual UI (not just backend APIs)
+✅ Screenshots saved to `.claude/verification/*.png`
+✅ test_results.json created with "overall_status": "passed"
 ✅ **If E2E failed: Debugged, fixed, and re-ran until passing** (MANDATORY)
 ✅ Zero TODOs verified (no "TODO" in implementation code)
 ✅ Security checklist complete (if auth/security feature)
-✅ Verification with screenshots done (if UI feature)
+✅ Browser cleaned up (`await browser.close()`)
 
-**CRITICAL: Items 5-8 are MANDATORY for ALL features with user-facing functionality!**
+**CRITICAL: Items 5-9 are MANDATORY for ALL features with user-facing functionality!**
+**You MUST use Puppeteer MCP tools for E2E testing - no Python/JavaScript scripts!**
 **You CANNOT skip debugging if E2E test fails - must fix and re-run!**
 
 ### STEP 15: FILE ORGANIZATION CHECK (Before Commit!)
