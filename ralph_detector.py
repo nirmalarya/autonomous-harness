@@ -122,7 +122,8 @@ def print_iteration_mode_status(mode: str, verbose: bool = True) -> None:
 
     if mode == "ralph":
         print("\n" + "=" * 70)
-        print("🔄 Iteration Mode: Ralph Wiggum Plugin (v4.0.0)")
+        from version import __version__
+        print(f"🔄 Iteration Mode: Ralph Wiggum Plugin (v{__version__})")
         print("=" * 70)
         print("Using /ralph-loop commands for E2E debugging and feature quality loops")
         print("SDK-level stop hooks will handle iteration automatically")

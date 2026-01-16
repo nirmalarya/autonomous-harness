@@ -1,13 +1,13 @@
 """
-Pre-flight Dependency Checker for v4.0.0
-=========================================
+Pre-flight Dependency Checker
+==============================
 
 Checks and auto-installs required dependencies:
 1. Node.js v18+ (user must install manually)
 2. Claude Code CLI (auto-install via npm)
 3. Ralph Wiggum Plugin (auto-install via claude plugin install)
 
-This ensures v4.0.0 can use the Ralph Wiggum plugin for iteration.
+This ensures the harness can use the Ralph Wiggum plugin for iteration.
 """
 
 import shutil
@@ -15,9 +15,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+from version import __version__
+
 
 class PreflightChecker:
-    """Check and install required dependencies for v4.0.0."""
+    """Check and install required dependencies."""
 
     def __init__(self, verbose: bool = True):
         """
@@ -238,7 +240,7 @@ class PreflightChecker:
             self._print("\n" + "=" * 70)
             self._print("❌ Node.js v18+ is REQUIRED but not found")
             self._print("=" * 70)
-            self._print("\nNode.js must be installed manually before using v4.0.0.")
+            self._print(f"\nNode.js must be installed manually before using claude-harness v{__version__}.")
             self._print("\n📖 Installation Instructions:\n")
 
             # Platform-specific instructions
@@ -288,7 +290,7 @@ def run_preflight(verbose: bool = True) -> bool:
     Run pre-flight checks and auto-install dependencies if possible.
 
     This is the main entry point for preflight checks. Call this before
-    starting the autonomous agent in v4.0.0.
+    starting the autonomous agent.
 
     Args:
         verbose: Print detailed status messages
@@ -303,7 +305,7 @@ def run_preflight(verbose: bool = True) -> bool:
     """
     if verbose:
         print("\n" + "=" * 70)
-        print("🔍 v4.0.0 Pre-flight Dependency Check")
+        print(f"🔍 v{__version__} Pre-flight Dependency Check")
         print("=" * 70)
         print("\nChecking required dependencies...\n")
 
