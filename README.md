@@ -238,11 +238,11 @@ claude-harness --mode backlog --project-dir ./my_project
 
 ## Release History
 
-### 🚀 Coming in v4.0.0 (In Development)
+### v4.0.0 (2026-01-15) - Ralph Wiggum Plugin Integration
 
-**Ralph Wiggum Plugin Integration - Anthropic Native Iteration**
+**Anthropic Native Iteration - SDK-Level Stop Hooks**
 
-Making the Ralph Wiggum plugin foundational for iteration:
+Making the Ralph Wiggum plugin foundational for iteration with automatic fallback to v3.7.0 bash loops:
 
 ✨ **Auto-Installation System:**
 - **Preflight Dependency Checks** - Auto-verifies Node.js v18+, Claude Code CLI, and Ralph plugin
@@ -253,12 +253,19 @@ Making the Ralph Wiggum plugin foundational for iteration:
 🔄 **Ralph Loop Integration:**
 - **Native `/ralph-loop` Commands** - Use official Ralph plugin for E2E debugging and feature iteration
 - **SDK-Level Stop Hooks** - Ralph intercepts exits, feeds prompts back until completion
+- **Self-Referential Learning** - Agent reads own previous work from files/git to improve
 - **Completion Promises** - `<promise>FEATURE_COMPLETE</promise>` markers signal genuine completion
 - **Max Iterations Safety** - Built-in bounds prevent infinite loops (10 for E2E, 20 for features)
 
+🔀 **Backward Compatibility:**
+- **Graceful Fallback** - Automatically uses bash loops if Ralph plugin not available
+- **CLI Flags** - `--force-ralph` requires Ralph, `--force-bash` forces v3.7.0 mode
+- **Auto-Detection** - Checks `~/.claude/plugins/installed_plugins.json` for Ralph
+- **Zero Breaking Changes** - v3.7.0 users unaffected
+
 📖 **Documentation:** [v4.0.0 Roadmap](ROADMAP_v4.0.0.md) | [Architecture Guide](docs/ARCHITECTURE_v4.md)
 
-**Status:** Phase 1 complete (preflight system), Phase 2 in progress (Ralph loop integration)
+**Phases Completed:** Phase 1 (auto-installation), Phase 2 (Ralph loop integration), Phase 3 (backward compatibility)
 
 ---
 
