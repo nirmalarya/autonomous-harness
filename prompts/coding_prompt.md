@@ -836,11 +836,28 @@ Before context fills up:
 
 ### Available MCP Tools
 
-**Browser Automation (E2E Testing):**
-{{BROWSER_MCP_TOOLS}}
+**Browser Automation (Puppeteer MCP - E2E Testing):**
+- `puppeteer_navigate` - Navigate browser to URL (e.g., `{"url": "http://localhost:3000/login"}`)
+- `puppeteer_click` - Click element by selector (e.g., `{"selector": "button.submit"}`)
+- `puppeteer_fill` - Fill form input (e.g., `{"selector": "input[name='email']", "value": "test@example.com"}`)
+- `puppeteer_screenshot` - Capture screenshot (e.g., `{"path": ".claude/verification/step-1.png"}`)
+- `puppeteer_evaluate` - Execute JavaScript in browser (use sparingly, only for cleanup: `{"expression": "await browser.close()"}`)
 
-**Documentation Lookup:**
-{{DOCUMENTATION_MCP_TOOLS}}
+**CRITICAL:** Use these MCP tools directly - DO NOT write Python/JavaScript test scripts!
+
+**Documentation Lookup (Context7 MCP):**
+- `context7_search` - Search documentation for frameworks (Next.js, React, FastAPI, etc.)
+- Use when you need latest best practices or API references
+
+**Testing Workflow with Puppeteer:**
+```
+1. puppeteer_navigate to feature URL
+2. puppeteer_screenshot to capture initial state
+3. puppeteer_fill or puppeteer_click to interact
+4. puppeteer_screenshot to capture result
+5. Verify expected UI changes visible in screenshots
+6. puppeteer_evaluate('await browser.close()') when done
+```
 
 Use documentation tools to query latest best practices for testing patterns.
 
