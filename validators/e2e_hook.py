@@ -18,12 +18,17 @@ def get_current_feature(project_dir: Path) -> dict | None:
         try:
             with open(feature_list_path) as f:
                 data = json.load(f)
-                features = data.get("features", [])
+                # Handle both formats: flat array [...] or wrapped {"features": [...]}
+                if isinstance(data, list):
+                    features = data
+                else:
+                    features = data.get("features", [])
                 # Find first feature that's not passing
+                # Support both "passes" (Anthropic standard) and "passing" (legacy) keys
                 for feature in features:
-                    if not feature.get("passing", False):
+                    if not feature.get("passes", feature.get("passing", False)):
                         return feature
-        except:
+        except (OSError, json.JSONDecodeError):
             pass
 
     # Check for .next_feature.json (continuation mode)
@@ -32,7 +37,7 @@ def get_current_feature(project_dir: Path) -> dict | None:
         try:
             with open(next_feature_path) as f:
                 return json.load(f)
-        except:
+        except (OSError, json.JSONDecodeError):
             pass
 
     return None
