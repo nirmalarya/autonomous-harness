@@ -8,28 +8,35 @@ Functions for loading prompt templates from the prompts directory.
 import shutil
 from pathlib import Path
 
+from bash_loops import get_e2e_debugging_loop, get_feature_quality_loop
 from setup_mcp import MCPServerSetup
 
 # PROMPTS_DIR is now the package directory itself
 PROMPTS_DIR = Path(__file__).parent
 
 
-def load_prompt(name: str, mode: str = "greenfield") -> str:
+def load_prompt(name: str, mode: str = "greenfield", iteration_mode: str = "ralph") -> str:
     """
     Load a prompt template from the prompts directory.
 
     Args:
         name: Prompt filename (without .md extension)
         mode: Execution mode (for MCP tool injection)
+        iteration_mode: "ralph" (Ralph Wiggum plugin) or "bash" (v3.7.0 bash loops)
 
     Returns:
-        Prompt text with MCP tool documentation injected
+        Prompt text with MCP tool documentation and iteration loops injected
     """
     prompt_path = PROMPTS_DIR / f"{name}.md"
     prompt = prompt_path.read_text()
 
     # Inject MCP tool documentation
-    return inject_mcp_tools(prompt, mode)
+    prompt = inject_mcp_tools(prompt, mode)
+
+    # Inject iteration loop templates for bash mode
+    prompt = inject_iteration_loops(prompt, iteration_mode)
+
+    return prompt
 
 
 def inject_mcp_tools(prompt: str, mode: str) -> str:
@@ -85,24 +92,61 @@ def inject_mcp_tools(prompt: str, mode: str) -> str:
     return prompt
 
 
-def get_initializer_prompt(mode: str = "greenfield") -> str:
+def inject_iteration_loops(prompt: str, iteration_mode: str) -> str:
+    """
+    Inject iteration loop templates based on iteration mode.
+
+    For "bash" mode (v3.7.0 compatibility), injects bash loop scripts.
+    For "ralph" mode, relies on Ralph Wiggum plugin (no injection needed).
+
+    Args:
+        prompt: The prompt template
+        iteration_mode: "ralph" or "bash"
+
+    Returns:
+        Prompt with iteration loops injected (or unchanged for ralph mode)
+    """
+    if iteration_mode != "bash":
+        # Ralph mode - remove any bash loop placeholders, Ralph handles iteration
+        prompt = prompt.replace("{{E2E_DEBUGGING_LOOP}}", "")
+        prompt = prompt.replace("{{FEATURE_QUALITY_LOOP}}", "")
+        return prompt
+
+    # Bash mode - inject the loop templates
+    e2e_loop = get_e2e_debugging_loop(iteration_mode)
+    quality_loop = get_feature_quality_loop(iteration_mode)
+
+    prompt = prompt.replace("{{E2E_DEBUGGING_LOOP}}", e2e_loop)
+    prompt = prompt.replace("{{FEATURE_QUALITY_LOOP}}", quality_loop)
+
+    # Also append loops at the end if placeholders weren't found
+    if "{{E2E_DEBUGGING_LOOP}}" not in prompt and e2e_loop:
+        prompt += f"\n\n## E2E Debugging Loop (Bash Mode)\n{e2e_loop}"
+
+    if "{{FEATURE_QUALITY_LOOP}}" not in prompt and quality_loop:
+        prompt += f"\n\n## Feature Quality Loop (Bash Mode)\n{quality_loop}"
+
+    return prompt
+
+
+def get_initializer_prompt(mode: str = "greenfield", iteration_mode: str = "ralph") -> str:
     """Load the initializer prompt based on mode."""
     if mode == "enhancement":
-        return load_prompt("enhancement_initializer_prompt", mode)
+        return load_prompt("enhancement_initializer_prompt", mode, iteration_mode)
     elif mode == "bugfix":
-        return load_prompt("enhancement_initializer_prompt", mode)  # Same as enhancement
+        return load_prompt("enhancement_initializer_prompt", mode, iteration_mode)  # Same as enhancement
     else:
-        return load_prompt("initializer_prompt", mode)
+        return load_prompt("initializer_prompt", mode, iteration_mode)
 
 
-def get_coding_prompt(mode: str = "greenfield") -> str:
+def get_coding_prompt(mode: str = "greenfield", iteration_mode: str = "ralph") -> str:
     """Load the coding agent prompt based on mode."""
     if mode == "enhancement":
-        return load_prompt("enhancement_coding_prompt", mode)
+        return load_prompt("enhancement_coding_prompt", mode, iteration_mode)
     elif mode == "bugfix":
-        return load_prompt("bugfix_mode_prompt", mode)
+        return load_prompt("bugfix_mode_prompt", mode, iteration_mode)
     else:
-        return load_prompt("coding_prompt", mode)
+        return load_prompt("coding_prompt", mode, iteration_mode)
 
 
 def copy_spec_to_project(

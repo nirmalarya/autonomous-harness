@@ -282,12 +282,12 @@ async def run_autonomous_agent(
         # Create client (fresh context) with mode-specific MCP servers
         client = create_client(project_dir, model, mode)
 
-        # Choose prompt based on session type and mode
+        # Choose prompt based on session type, mode, and iteration mode
         if is_first_run:
-            prompt = get_initializer_prompt(mode)
+            prompt = get_initializer_prompt(mode, iteration_mode)
             is_first_run = False  # Only use initializer once
         else:
-            prompt = get_coding_prompt(mode)
+            prompt = get_coding_prompt(mode, iteration_mode)
 
         # Reset loop detector for fresh session
         loop_detector.reset()
