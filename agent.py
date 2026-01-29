@@ -11,6 +11,7 @@ v3.1.0 enhancements:
 """
 
 import asyncio
+import json
 from pathlib import Path
 
 from claude_code_sdk import ClaudeSDKClient
@@ -237,6 +238,32 @@ async def run_autonomous_agent(
     # Main loop
     iteration = 0
 
+    def get_current_feature(features: list, retry_mgr: RetryManager) -> dict | None:
+        """
+        Get the next feature to work on, prioritizing by retry count.
+        
+        Strategy: Work on features with fewer failures first, but never skip.
+        This way easier features get done while harder ones keep getting retried.
+        """
+        incomplete = []
+        for feature in features:
+            if feature.get("passes", False):
+                continue  # Already complete
+            feature_id = feature.get("id") or feature.get("description", "")[:50]
+            retry_count = retry_mgr.get_retry_count(feature_id)
+            incomplete.append((retry_count, feature))
+        
+        if not incomplete:
+            return None
+        
+        # Sort by retry count (fewer failures first) to prioritize easier features
+        incomplete.sort(key=lambda x: x[0])
+        return incomplete[0][1]
+
+    def get_feature_id(feature: dict) -> str:
+        """Extract a unique identifier for a feature."""
+        return feature.get("id") or feature.get("description", "unknown")[:50]
+
     while True:
         iteration += 1
 
@@ -251,17 +278,20 @@ async def run_autonomous_agent(
         #      (let initializer add new features first!)
         spec_feature_list = spec_dir / "feature_list.json"
 
+        # Track current feature for retry logic
+        current_feature = None
+        current_feature_id = None
+        features_before = []
+
         if (
             iteration > 1 or mode == "greenfield"
         ):  # Only check after first session, or always in greenfield
             if spec_feature_list.exists():
-                import json
-
                 try:
                     with open(spec_feature_list) as f:
-                        features = json.load(f)
-                    total = len(features)
-                    passing = sum(1 for f in features if f.get("passes", False))
+                        features_before = json.load(f)
+                    total = len(features_before)
+                    passing = sum(1 for f in features_before if f.get("passes", False))
 
                     if passing >= total and total > 0:
                         print("\n" + "=" * 70)
@@ -273,6 +303,20 @@ async def run_autonomous_agent(
                         print("\nTo add more features, create a new enhancement spec.")
                         print("=" * 70)
                         return  # Exit the function, stopping the loop
+
+                    # Identify current feature for retry tracking (prioritizes fewer failures)
+                    current_feature = get_current_feature(features_before, retry_manager)
+                    if current_feature:
+                        current_feature_id = get_feature_id(current_feature)
+                        retry_count = retry_manager.get_retry_count(current_feature_id)
+                        if retry_count >= max_retries:
+                            print(f"⚠️  Feature struggling ({retry_count} attempts): {current_feature_id[:50]}...")
+                            print("   Will keep trying - consider manual review if this persists")
+                        elif retry_count > 0:
+                            print(f"📋 Resuming feature: {current_feature_id[:60]}... (attempt {retry_count + 1})")
+                        else:
+                            print(f"📋 Working on feature: {current_feature_id[:60]}...")
+
                 except (OSError, json.JSONDecodeError):
                     pass  # Continue if we can't read the file
 
@@ -302,22 +346,49 @@ async def run_autonomous_agent(
                 error_handler=error_handler,
             )
 
-        # Handle status
+        # Handle status with retry tracking
         if status == "continue":
             print(f"\nAgent will auto-continue in {AUTO_CONTINUE_DELAY_SECONDS}s...")
             print_progress_summary(project_dir)
+
+            # Check if current feature was completed (passes changed to true)
+            if current_feature_id and spec_feature_list.exists():
+                try:
+                    with open(spec_feature_list) as f:
+                        features_after = json.load(f)
+                    for feature in features_after:
+                        fid = get_feature_id(feature)
+                        if fid == current_feature_id and feature.get("passes", False):
+                            retry_manager.record_success(current_feature_id)
+                            print(f"✅ Feature completed: {current_feature_id[:60]}...")
+                            break
+                except (OSError, json.JSONDecodeError):
+                    pass
+
             await asyncio.sleep(AUTO_CONTINUE_DELAY_SECONDS)
 
         elif status == "timeout":
             print("\n🛑 Session timed out or stalled")
-            print("This session will be retried with fresh context...")
-            # Don't record as failure - timeout is expected sometimes
+            # Record timeout for tracking (used to prioritize easier features first)
+            if current_feature_id:
+                retry_manager.record_failure(current_feature_id, "Session timeout/stall")
+                retry_count = retry_manager.get_retry_count(current_feature_id)
+                print(f"🔄 Will retry feature (attempt {retry_count} recorded)")
+                if retry_count >= max_retries:
+                    print(f"   ⚠️  This feature has failed {retry_count} times - may need manual review")
+            print("Retrying with fresh context...")
             await asyncio.sleep(AUTO_CONTINUE_DELAY_SECONDS)
 
         elif status == "error":
             print("\n❌ Session encountered an error")
+            # Record error for tracking (used to prioritize easier features first)
+            if current_feature_id:
+                retry_manager.record_failure(current_feature_id, f"Session error: {response[:100]}")
+                retry_count = retry_manager.get_retry_count(current_feature_id)
+                print(f"🔄 Will retry feature (attempt {retry_count} recorded)")
+                if retry_count >= max_retries:
+                    print(f"   ⚠️  This feature has failed {retry_count} times - may need manual review")
             print("Will retry with a fresh session...")
-            # Error already logged by error_handler
             await asyncio.sleep(AUTO_CONTINUE_DELAY_SECONDS)
 
         # Small delay between sessions
@@ -334,17 +405,21 @@ async def run_autonomous_agent(
 
     # Print retry/error statistics
     retry_stats = retry_manager.get_stats()
-    if retry_stats["features_skipped"] > 0 or retry_stats["features_being_retried"] > 0:
+    if retry_stats["features_being_retried"] > 0:
         print("\n" + "=" * 70)
         print("  RETRY STATISTICS")
         print("=" * 70)
-        print(f"\nFeatures being retried: {retry_stats['features_being_retried']}")
-        print(f"Features skipped (max retries): {retry_stats['features_skipped']}")
+        print(f"\nFeatures with recorded failures: {retry_stats['features_being_retried']}")
         print(f"Total retry attempts: {retry_stats['total_retry_attempts']}")
-        if retry_stats["skipped_features"]:
-            print("\nSkipped features:")
-            for feature_id in retry_stats["skipped_features"]:
-                print(f"   - {feature_id}")
+        
+        # Show features that are struggling (many failures)
+        struggling = [(fid, count) for fid, count in retry_stats.get("retry_count", {}).items() 
+                      if count >= max_retries]
+        if struggling:
+            print(f"\n⚠️  Features needing attention ({len(struggling)}):")
+            for feature_id, count in struggling:
+                print(f"   - {feature_id[:50]}... ({count} failures)")
+            print("\n   These features keep failing - consider manual review")
         print("=" * 70)
 
     # Print error summary
