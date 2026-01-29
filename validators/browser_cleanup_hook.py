@@ -11,7 +11,7 @@ browsers are closed to prevent memory leaks.
 import subprocess
 
 
-async def browser_cleanup_hook(tool_name: str, tool_input: dict, tool_result: dict) -> dict:
+async def browser_cleanup_hook(input_data: dict, tool_use_id: str = None, context: dict = None) -> dict:
     """
     PostToolUse hook that closes browsers after Puppeteer operations.
 
@@ -19,20 +19,18 @@ async def browser_cleanup_hook(tool_name: str, tool_input: dict, tool_result: di
     and attempts to close any open browser instances.
 
     Args:
-        tool_name: Name of the tool that was just executed
-        tool_input: Input parameters to the tool
-        tool_result: Result returned by the tool
+        input_data: Dict containing tool_name, tool_input, and tool_result
+        tool_use_id: Unique ID for this tool use (optional)
+        context: Execution context including cwd (optional)
 
     Returns:
         Hook result with cleanup status
     """
-    # Defensive type checking - handle case where tool_name might be a dict
-    if isinstance(tool_name, dict):
-        # Extract tool name from dict if present
-        actual_tool_name = tool_name.get("name", "") or tool_name.get("tool_name", "")
-        if not actual_tool_name:
-            return {"status": "skipped", "reason": "Could not extract tool name from dict"}
-        tool_name = actual_tool_name
+    # Extract tool name from input_data (standard SDK hook signature)
+    tool_name = input_data.get("tool_name", "") or input_data.get("name", "")
+    
+    if not tool_name:
+        return {"status": "skipped", "reason": "Could not extract tool name from input_data"}
 
     # Convert to string if not already
     tool_name = str(tool_name)
